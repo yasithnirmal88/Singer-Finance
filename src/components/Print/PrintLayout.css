@@ -149,22 +149,22 @@
 /* Legal Conditions Footer */
 .offer-letter-title {
   text-align: center;
-  font-size: 6pt;
+  font-size: 5pt;
   font-weight: normal;
-  margin: 3px 0 2px 0;
+  margin: 2px 0 1px 0;
   text-decoration: underline;
 }
 
 .legal-section-title {
-  font-size: 4.5pt;
+  font-size: 3.5pt;
   text-decoration: underline;
   font-weight: bold;
-  margin-top: 2px;
+  margin-top: 1px;
   margin-bottom: 1px;
 }
 
 .legal-text {
-  font-size: 4pt;
+  font-size: 3pt;
   text-align: justify;
   line-height: 1.15;
 }

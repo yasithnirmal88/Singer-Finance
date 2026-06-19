@@ -166,7 +166,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
 
       <div className="offer-letter-title">Offer Letter Group sale Facility</div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '110px 6px 1fr', rowGap: '1px', fontSize: '4.5pt', marginBottom: '2px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '110px 6px 1fr', rowGap: '1px', fontSize: '3.5pt', marginBottom: '1px' }}>
         <div>1. Facility Amount</div><div>:</div><div style={{ fontStyle: 'italic', color: '#555' }}>As mentioned in the Invoice</div>
         <div>2. Rental</div><div>:</div><div style={{ fontStyle: 'italic', color: '#555' }}>As mentioned in the Invoice</div>
         <div>3. Interest Rate</div><div>:</div><div style={{ fontStyle: 'italic', color: '#555' }}>As mentioned in the Invoice</div>
@@ -200,7 +200,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
         We look forward to a mutually beneficial relationship.
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '4pt' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2px', fontSize: '3pt' }}>
         <div>
           Your faithfully,<br />
           <strong>Singer Finance (Lanka) PLC</strong>
