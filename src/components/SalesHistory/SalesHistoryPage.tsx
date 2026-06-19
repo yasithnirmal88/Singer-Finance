@@ -13,7 +13,21 @@ export const SalesHistoryPage: React.FC = () => {
   const [searchText, setSearchText] = useState('');
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
-  const [printSaleData, setPrintSaleData] = useState<Sale | null>(null);
+  const [printSaleData, setPrintSaleData] = useState<{
+    saleData: {
+      invoiceNo: string;
+      date: string;
+      customerName: string;
+      institution: string;
+      epfNumber: string;
+      contactNumber: string;
+      items: Sale['items'];
+      totalCashPrice: number;
+      totalRental: number;
+      term: number;
+      interestRate: number;
+    };
+  } | null>(null);
 
   const handleDelete = async (id: string) => {
     try {
@@ -26,7 +40,21 @@ export const SalesHistoryPage: React.FC = () => {
   };
 
   const handlePrint = (sale: Sale) => {
-    setPrintSaleData(sale);
+    setPrintSaleData({
+      saleData: {
+        invoiceNo: sale.invoiceNo,
+        date: sale.date,
+        customerName: sale.customerName,
+        institution: sale.institution,
+        epfNumber: sale.epfNumber,
+        contactNumber: sale.contactNumber,
+        items: sale.items,
+        totalCashPrice: sale.totalCashPrice,
+        totalRental: sale.totalRentalMonthly,
+        term: sale.overallTerm,
+        interestRate: sale.interestRate,
+      },
+    });
     setTimeout(() => {
       window.print();
     }, 100);
@@ -160,7 +188,7 @@ export const SalesHistoryPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Print component - Hidden on screen */}
-      {printSaleData && <PrintLayout sale={printSaleData} />}
+      {printSaleData && <PrintLayout saleData={printSaleData.saleData} />}
 
       <Card
         bordered={false}

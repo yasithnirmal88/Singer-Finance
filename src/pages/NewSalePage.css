@@ -1,0 +1,193 @@
+/* New Sale Page Styles */
+
+.new-sale-page {
+  padding: 20px;
+  background: #f5f5f5;
+  min-height: calc(100vh - 64px);
+}
+
+.sale-card {
+  max-width: 1200px;
+  margin: 0 auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sale-card .ant-card-head {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 8px 8px 0 0;
+}
+
+.sale-card .ant-card-head .ant-card-head-title {
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.sale-card .ant-form-item {
+  margin-bottom: 16px;
+}
+
+.sale-card .ant-form-item-label > label {
+  font-weight: 500;
+  color: #333;
+}
+
+.items-table {
+  margin-top: 16px;
+  margin-bottom: 20px;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+}
+
+.items-table .ant-table {
+  font-size: 13px;
+}
+
+.items-table .ant-table-thead > tr > th {
+  background-color: #fafafa;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #e8e8e8;
+}
+
+.items-table .ant-table-tbody > tr > td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.items-table .ant-table-tbody > tr:hover > td {
+  background-color: #fafafa;
+}
+
+/* Totals Card */
+.totals-card {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+.totals-card .ant-card {
+  background: transparent;
+}
+
+.total-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.total-item:last-child {
+  border-bottom: none;
+}
+
+.total-item label {
+  font-weight: 600;
+  color: #333;
+  font-size: 13px;
+}
+
+.total-value {
+  font-weight: 700;
+  color: #667eea;
+  font-size: 16px;
+}
+
+/* Action Buttons */
+.sale-card .ant-btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+}
+
+.sale-card .ant-btn-primary:hover,
+.sale-card .ant-btn-primary:focus {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+/* Print Styles */
+@media print {
+  body {
+    margin: 0;
+    padding: 0;
+    background: white;
+  }
+
+  .new-sale-page {
+    display: none !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-layout {
+    display: block !important;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .new-sale-page {
+    padding: 12px;
+  }
+
+  .sale-card {
+    margin: 0;
+  }
+
+  .items-table .ant-table {
+    font-size: 12px;
+  }
+
+  .items-table .ant-table-thead > tr > th,
+  .items-table .ant-table-tbody > tr > td {
+    padding: 8px 4px;
+  }
+
+  .total-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .new-sale-page {
+    background: #141414;
+  }
+
+  .sale-card .ant-card {
+    background: #1f1f1f;
+    color: #fff;
+  }
+
+  .sale-card .ant-form-item-label > label {
+    color: #fff;
+  }
+
+  .items-table .ant-table-thead > tr > th {
+    background-color: #262626;
+    color: #fff;
+  }
+
+  .items-table .ant-table-tbody > tr:hover > td {
+    background-color: #262626;
+  }
+
+  .totals-card {
+    background: #262626;
+  }
+
+  .total-item {
+    border-bottom-color: #434343;
+    color: #fff;
+  }
+
+  .total-item label {
+    color: #fff;
+  }
+}

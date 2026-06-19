@@ -1,0 +1,537 @@
+/* Print Layout Styles - Hidden on screen, visible only when printing */
+
+.print-layout {
+  display: none;
+}
+
+@media print {
+  body {
+    margin: 0;
+    padding: 0;
+    background: white;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-layout {
+    display: block !important;
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    padding: 0;
+    background: white;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 10px;
+    line-height: 1.35;
+    color: #000;
+  }
+
+  .print-layout * {
+    display: revert !important;
+    visibility: visible !important;
+  }
+
+  .print-layout table {
+    display: table !important;
+  }
+
+  .print-layout thead {
+    display: table-header-group !important;
+  }
+
+  .print-layout tbody {
+    display: table-row-group !important;
+  }
+
+  .print-layout tr {
+    display: table-row !important;
+  }
+
+  .print-layout td,
+  .print-layout th {
+    display: table-cell !important;
+  }
+
+  .print-layout ol,
+  .print-layout ul {
+    display: block !important;
+  }
+
+  .print-layout li {
+    display: list-item !important;
+  }
+}
+
+/* A4 Invoice Container */
+.a4-invoice {
+  width: 100%;
+  max-width: 186mm;
+  margin: 0 auto;
+}
+
+/* Invoice Border Box */
+.invoice-border {
+  border: 1.5px solid #000;
+  padding: 12px 14px;
+  margin-bottom: 6px;
+}
+
+/* Header */
+.invoice-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1.5px solid #000;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.invoice-title h2 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.invoice-title p {
+  margin: 2px 0;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.invoice-number {
+  position: absolute;
+  right: 0;
+  top: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.no-label {
+  font-size: 11px;
+  color: #c41e3a;
+  font-weight: bold;
+}
+
+.no-value {
+  font-size: 14px;
+  color: #c41e3a;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+/* Customer Info */
+.customer-info {
+  margin-bottom: 10px;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+  gap: 6px;
+}
+
+.info-row label {
+  font-weight: 600;
+  min-width: 90px;
+  font-size: 10px;
+}
+
+.info-row label::after {
+  content: ':';
+  margin-left: 2px;
+}
+
+.info-value {
+  border-bottom: 1px dotted #000;
+  flex: 1;
+  padding: 1px 4px;
+  min-height: 14px;
+  font-weight: 600;
+}
+
+.epf-label {
+  margin-left: 14px;
+  font-weight: 600;
+  font-size: 9px;
+  min-width: auto;
+  text-transform: uppercase;
+}
+
+.epf-label::after {
+  content: '';
+}
+
+.info-box {
+  border: 1px solid #000;
+  padding: 2px 8px;
+  min-width: 100px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 11px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+}
+
+.date-label {
+  margin-left: 14px;
+  font-weight: 600;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.date-label::after {
+  content: '';
+}
+
+.date-box-group {
+  display: flex;
+  border: 1px solid #000;
+  font-size: 8px;
+  background: white;
+}
+
+.date-seg {
+  width: 14px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  padding: 1px 0;
+  border-right: 1px solid #000;
+}
+
+.date-seg:last-child {
+  border-right: none;
+}
+
+.date-seg-label {
+  font-size: 4.5px;
+  color: #888;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.date-seg-value {
+  font-size: 8px;
+  font-weight: bold;
+  line-height: 1.2;
+}
+
+/* Items Table */
+.items-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 6px;
+  border: 1px solid #000;
+  font-size: 9px;
+}
+
+.items-table thead th {
+  border: 1px solid #000;
+  padding: 4px 3px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 9px;
+  background: #f0f0f0;
+}
+
+.items-table tbody td {
+  border: 1px solid #000;
+  padding: 5px 3px;
+  font-size: 9px;
+  height: 20px;
+}
+
+.col-num { width: 22px; text-align: center; }
+.col-item { text-align: left; padding-left: 6px !important; }
+.col-model { text-align: center; }
+.col-cash-price { text-align: right; padding-right: 6px !important; }
+.col-rental { text-align: right; padding-right: 6px !important; }
+.col-term { width: 45px; text-align: center; }
+
+/* Total Row */
+.total-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-bottom: 10px;
+  font-size: 10px;
+}
+
+.total-label {
+  font-weight: bold;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.total-underline {
+  width: 80px;
+  border-bottom: 2.5px double #000;
+  text-align: right;
+  font-weight: bold;
+  font-size: 9px;
+  padding: 0 4px 2px;
+}
+
+/* Summary Section */
+.summary-section {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.summary-left {
+  flex: 0 0 200px;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.summary-item label {
+  font-weight: 600;
+  font-size: 9.5px;
+  min-width: 100px;
+  line-height: 1.2;
+}
+
+.summary-box {
+  border: 1px solid #000;
+  padding: 3px 8px;
+  min-width: 80px;
+  text-align: right;
+  font-weight: bold;
+  font-size: 11px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  background: white;
+}
+
+.term-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.term-box {
+  border: 1px solid #000;
+  padding: 3px 8px;
+  width: 45px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 11px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+}
+
+.term-unit {
+  font-weight: bold;
+  font-size: 11px;
+}
+
+.rate-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rate-box {
+  border: 1px solid #000;
+  padding: 3px 8px;
+  width: 65px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 10px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+}
+
+.rate-unit {
+  font-weight: bold;
+  font-size: 11px;
+}
+
+.summary-right {
+  flex: 1;
+  display: flex;
+  gap: 10px;
+}
+
+.sig-box {
+  flex: 1;
+  border: 1px solid #000;
+  padding: 6px 8px;
+  text-align: center;
+  font-size: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 70px;
+  background: white;
+}
+
+.sig-box-title {
+  font-size: 7px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #666;
+  margin-bottom: auto;
+  text-align: left;
+}
+
+.sig-line {
+  border-top: 1px dotted #666;
+  padding-top: 3px;
+  font-weight: 600;
+  font-size: 7px;
+  color: #000;
+  margin-top: auto;
+}
+
+/* Stamp simulation */
+.stamp-area {
+  border: 1px dashed #6366f1;
+  padding: 4px;
+  margin: 4px 0;
+  text-align: center;
+  font-size: 7px;
+  font-weight: bold;
+  color: #4338ca;
+  text-transform: uppercase;
+  background: rgba(99, 102, 241, 0.05);
+  transform: rotate(-1deg);
+  max-width: 180px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
+/* Double Divider */
+.double-divider {
+  border: none;
+  border-top: 3px double #000;
+  margin: 6px 0;
+}
+
+/* Offer Letter Section */
+.offer-letter-section {
+  border: 1.5px solid #000;
+  padding: 10px 12px;
+  font-size: 8.5px;
+  line-height: 1.4;
+}
+
+.offer-letter-section h3 {
+  text-align: center;
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 6px 0;
+  text-decoration: underline;
+}
+
+.offer-content {
+  font-size: 8.5px;
+}
+
+.terms-grid {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: 1px 4px;
+  margin-bottom: 6px;
+  font-size: 8.5px;
+}
+
+.terms-grid .term-label {
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.terms-grid .term-colon {
+  padding-right: 4px;
+}
+
+.terms-grid .term-value {
+  font-weight: normal;
+}
+
+.security-list {
+  grid-column: span 3;
+  padding-left: 12px;
+  margin: 1px 0;
+}
+
+.general-conditions {
+  margin: 4px 0;
+  padding-left: 16px;
+  font-size: 8.5px;
+}
+
+.general-conditions li {
+  margin-bottom: 3px;
+  text-align: justify;
+  line-height: 1.35;
+}
+
+.offer-footer {
+  margin-top: 4px;
+  padding-top: 3px;
+  border-top: 1px solid #ccc;
+}
+
+.offer-footer p {
+  margin: 3px 0;
+  font-size: 8.5px;
+}
+
+.signature-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 8px;
+}
+
+.signature-footer .left {
+  font-size: 8.5px;
+}
+
+.signature-footer .right {
+  text-align: center;
+}
+
+.signature-footer .right .line {
+  border-top: 1px solid #000;
+  width: 200px;
+  padding-top: 2px;
+  font-weight: bold;
+  font-size: 8px;
+}

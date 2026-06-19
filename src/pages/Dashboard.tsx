@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import AppLayout from '../components/Layout/AppLayout';
-import NewSalePage from '../components/NewSale/NewSalePage';
+import NewSalePage from './NewSalePage';
 import CustomersPage from '../components/Customers/CustomersPage';
 import ItemsPage from '../components/Items/ItemsPage';
 import SalesHistoryPage from '../components/SalesHistory/SalesHistoryPage';

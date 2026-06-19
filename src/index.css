@@ -2,18 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Disable Ant Design global override defaults that might interfere with printing */
+/* Print helpers - used alongside PrintLayout.css */
 @media print {
-  body {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-    font-family: 'Times New Roman', Times, serif !important;
-  }
   .no-print {
     display: none !important;
-  }
-  .print-only {
-    display: block !important;
   }
 }
 
