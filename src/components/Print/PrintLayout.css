@@ -370,10 +370,6 @@
     background: white;
   }
 
-  * {
-    display: none !important;
-  }
-
   .print-layout {
     display: block !important;
     margin: 0;
