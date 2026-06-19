@@ -28,7 +28,8 @@ interface PrintLayoutProps {
 export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
   if (!saleData) return null;
 
-  const displayRows = saleData.items;
+  const blankRowsCount = Math.max(0, 5 - saleData.items.length);
+  const displayRows = [...saleData.items, ...Array(blankRowsCount).fill(null)];
 
   return (
     <div className="print-only-container">
@@ -91,15 +92,15 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
             {displayRows.map((item, index) => (
               <tr key={index}>
                 <td>{index + 1}</td>
-                <td style={{ textAlign: 'left', paddingLeft: '6px' }}>{item.itemName}</td>
-                <td>{item.modelNumber}</td>
+                <td style={{ textAlign: 'left', paddingLeft: '6px' }}>{item?.itemName || ''}</td>
+                <td>{item?.modelNumber || ''}</td>
                 <td style={{ textAlign: 'right', paddingRight: '6px' }}>
-                  {item.cashPrice.toLocaleString([], { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {item ? item.cashPrice.toLocaleString([], { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''}
                 </td>
                 <td style={{ textAlign: 'right', paddingRight: '6px' }}>
-                  {item.rental.toLocaleString([], { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {item ? item.rental.toLocaleString([], { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''}
                 </td>
-                <td>{item.term}</td>
+                <td>{item ? item.term : ''}</td>
               </tr>
             ))}
             <tr>
