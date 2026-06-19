@@ -41,35 +41,34 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
 
         <div className="doc-header">
           <div className="company-title">Financed by Singer Finance (Lanka) PLC</div>
-          <div className="company-address">No. 498, R. A. De Mel Mawatha, Colombo 03.</div>
-          <div className="company-address">Tel : 0112 400 400</div>
+          <div className="company-address">No. 498, R. A. De Mel Mawatha, Colombo 03. Tel : 0112 400 400</div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '8px', marginTop: '5px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '3px', marginTop: '2px' }}>
           <div>
             <div className="field-row">
-              <span style={{ width: '100px' }}>Institution</span>:
+              <span style={{ width: '70px', fontSize: '4pt' }}>Institution</span>:
               <span className="dotted-line">{saleData.institution}</span>
             </div>
             <div className="field-row">
-              <span style={{ width: '100px' }}>Customer Name</span>:
+              <span style={{ width: '70px', fontSize: '4pt' }}>Customer Name</span>:
               <span className="dotted-line">{saleData.customerName}</span>
             </div>
             <div className="field-row">
-              <span style={{ width: '100px' }}>Contact Number</span>:
+              <span style={{ width: '70px', fontSize: '4pt' }}>Contact Number</span>:
               <span className="dotted-line">{saleData.contactNumber}</span>
             </div>
           </div>
 
           <div>
             <div className="field-row">
-              <span style={{ width: '80px' }}>EPF Number</span>:
-              <span className="dotted-line" style={{ border: '1px solid #000', height: '18px', padding: '1px 4px' }}>
+              <span style={{ width: '55px', fontSize: '4pt' }}>EPF Number</span>:
+              <span className="dotted-line" style={{ border: '1px solid #000', height: '11px', padding: '0 2px' }}>
                 {saleData.epfNumber}
               </span>
             </div>
-            <div className="field-row" style={{ marginTop: '4px' }}>
-              <span style={{ width: '80px' }}>Date</span>:
+            <div className="field-row" style={{ marginTop: '1px' }}>
+              <span style={{ width: '55px', fontSize: '4pt' }}>Date</span>:
               <span className="dotted-line" style={{ textAlign: 'center' }}>
                 {saleData.date ? new Date(saleData.date).toLocaleDateString('en-GB') : 'DD / MM / YYYY'}
               </span>
@@ -84,7 +83,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
               <th style={{ width: '40%' }}>Item</th>
               <th style={{ width: '25%' }}>Model</th>
               <th style={{ width: '15%', padding: 0 }}>
-                <div style={{ borderBottom: '1px solid #000', padding: '1px' }}>Cash Price</div>
+                <div style={{ borderBottom: '1px solid #000', padding: '0' }}>Cash Price</div>
                 <div className="sub-header-cell">Rs.</div>
               </th>
               <th style={{ width: '10%' }}>Rental</th>
@@ -95,29 +94,29 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
             {displayRows.map((item, index) => (
               <tr key={index}>
                 <td>{index + 1}</td>
-                <td style={{ textAlign: 'left', paddingLeft: '5px' }}>{item?.itemName || ''}</td>
+                <td style={{ textAlign: 'left', paddingLeft: '2px' }}>{item?.itemName || ''}</td>
                 <td>{item?.modelNumber || ''}</td>
-                <td style={{ textAlign: 'right', paddingRight: '5px' }}>
+                <td style={{ textAlign: 'right', paddingRight: '2px' }}>
                   {item ? item.cashPrice.toLocaleString([], { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''}
                 </td>
-                <td style={{ textAlign: 'right', paddingRight: '5px' }}>
+                <td style={{ textAlign: 'right', paddingRight: '2px' }}>
                   {item ? item.rental.toLocaleString([], { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''}
                 </td>
                 <td>{item ? item.term : ''}</td>
               </tr>
             ))}
             <tr>
-              <td colSpan={3} style={{ border: 'none', textAlign: 'right', paddingRight: '6px', fontWeight: 'bold', fontSize: '5pt' }}>TOTAL</td>
-              <td style={{ textAlign: 'right', paddingRight: '6px', fontWeight: 'bold' }}>
+              <td colSpan={3} style={{ border: 'none', textAlign: 'right', paddingRight: '2px', fontWeight: 'bold', fontSize: '3.5pt' }}>TOTAL</td>
+              <td style={{ textAlign: 'right', paddingRight: '2px', fontWeight: 'bold' }}>
                 {saleData.totalCashPrice.toLocaleString([], { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </td>
               <td style={{ border: 'none' }}></td>
               <td style={{ border: 'none' }}></td>
             </tr>
             <tr>
-              <td colSpan={3} style={{ border: 'none', textAlign: 'right', paddingRight: '6px', fontWeight: 'bold', fontSize: '5pt' }}>MONTHLY TOTAL</td>
+              <td colSpan={3} style={{ border: 'none', textAlign: 'right', paddingRight: '2px', fontWeight: 'bold', fontSize: '3.5pt' }}>MONTHLY TOTAL</td>
               <td style={{ border: 'none' }}></td>
-              <td style={{ textAlign: 'right', paddingRight: '6px', fontWeight: 'bold' }}>
+              <td style={{ textAlign: 'right', paddingRight: '2px', fontWeight: 'bold' }}>
                 {saleData.totalRental.toLocaleString([], { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </td>
               <td style={{ border: 'none' }}></td>
@@ -125,24 +124,24 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
           </tbody>
         </table>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.2fr 1.2fr', gap: '5px', marginTop: '4px', alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.2fr 1.2fr', gap: '2px', marginTop: '2px', alignItems: 'start' }}>
           <div>
             <div className="field-row">
-              <span style={{ fontSize: '5pt', width: '75px' }}>Total Rental<br />(Monthly)</span>
-              <span className="dotted-line" style={{ border: '1px solid #000', height: '16px', textAlign: 'center', lineHeight: '16px' }}>
+              <span style={{ fontSize: '3.5pt', width: '50px' }}>Total Rental<br />(Monthly)</span>
+              <span className="dotted-line" style={{ border: '1px solid #000', height: '11px', textAlign: 'center', lineHeight: '11px' }}>
                 {saleData.totalRental.toLocaleString([], { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
-            <div className="field-row" style={{ marginTop: '3px' }}>
-              <span style={{ fontSize: '5pt', width: '75px' }}>Term</span>
-              <span className="dotted-line" style={{ border: '1px solid #000', height: '14px', textAlign: 'center', lineHeight: '14px', position: 'relative' }}>
-                {saleData.term} <span style={{ position: 'absolute', right: '3px', top: '0', fontSize: '4.5pt', borderLeft: '1px solid #000', paddingLeft: '2px', height: '100%' }}>M</span>
+            <div className="field-row" style={{ marginTop: '1px' }}>
+              <span style={{ fontSize: '3.5pt', width: '50px' }}>Term</span>
+              <span className="dotted-line" style={{ border: '1px solid #000', height: '10px', textAlign: 'center', lineHeight: '10px', position: 'relative' }}>
+                {saleData.term} <span style={{ position: 'absolute', right: '1px', top: '0', fontSize: '3pt', borderLeft: '1px solid #000', paddingLeft: '1px' }}>M</span>
               </span>
             </div>
-            <div className="field-row" style={{ marginTop: '3px' }}>
-              <span style={{ fontSize: '5pt', width: '75px' }}>Interest Rate<br />(Nominal)</span>
-              <span className="dotted-line" style={{ border: '1px solid #000', height: '14px', textAlign: 'center', lineHeight: '14px', position: 'relative' }}>
-                {saleData.interestRate} <span style={{ position: 'absolute', right: '3px', top: '0', fontSize: '4.5pt', borderLeft: '1px solid #000', paddingLeft: '2px', height: '100%' }}>%</span>
+            <div className="field-row" style={{ marginTop: '1px' }}>
+              <span style={{ fontSize: '3.5pt', width: '50px' }}>Interest Rate<br />(Nominal)</span>
+              <span className="dotted-line" style={{ border: '1px solid #000', height: '10px', textAlign: 'center', lineHeight: '10px', position: 'relative' }}>
+                {saleData.interestRate} <span style={{ position: 'absolute', right: '1px', top: '0', fontSize: '3pt', borderLeft: '1px solid #000', paddingLeft: '1px' }}>%</span>
               </span>
             </div>
           </div>
@@ -152,13 +151,12 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
               <span className="stamp-supplier">Supplier Details</span>
               SINGER Showroom<br />
               No. 91, New Galle Road,<br />
-              Moratuwa.<br />
-              (Opposite NSB Bank)<br />
-              <span style={{ fontSize: '4.5pt' }}>Tel: 0112-647856 / 0755-144000</span>
+              Moratuwa. (Opposite NSB Bank)<br />
+              Tel: 0112-647856 / 0755-144000
             </div>
           </div>
 
-          <div style={{ border: '1px solid #000', height: '55px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '6pt', textAlign: 'center', padding: '4px' }}>
+          <div style={{ border: '1px solid #000', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '4pt', textAlign: 'center', padding: '1px' }}>
             Singer Finance (Lanka) PLC
           </div>
         </div>
@@ -166,14 +164,14 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
 
       <div className="offer-letter-title">Offer Letter Group sale Facility</div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '110px 6px 1fr', rowGap: '1px', fontSize: '3.5pt', marginBottom: '1px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '70px 4px 1fr', rowGap: '0', fontSize: '2.5pt', marginBottom: '0' }}>
         <div>1. Facility Amount</div><div>:</div><div style={{ fontStyle: 'italic', color: '#555' }}>As mentioned in the Invoice</div>
         <div>2. Rental</div><div>:</div><div style={{ fontStyle: 'italic', color: '#555' }}>As mentioned in the Invoice</div>
         <div>3. Interest Rate</div><div>:</div><div style={{ fontStyle: 'italic', color: '#555' }}>As mentioned in the Invoice</div>
         <div>4. Default Rate</div><div>:</div><div style={{ fontStyle: 'italic', color: '#555' }}>Not Applicable</div>
         <div style={{ fontWeight: 'bold', gridColumn: 'span 3' }}>5. Security Offered,</div>
-        <div style={{ paddingLeft: '16px', gridColumn: 'span 3' }}>(i) Items describe in the invoice</div>
-        <div style={{ paddingLeft: '16px', gridColumn: 'span 3' }}>(ii) Personal guarantee of two employees in the institute</div>
+        <div style={{ paddingLeft: '10px', gridColumn: 'span 3' }}>(i) Items describe in the invoice</div>
+        <div style={{ paddingLeft: '10px', gridColumn: 'span 3' }}>(ii) Personal guarantee of two employees in the institute</div>
         <div>6. Due date</div><div>:</div><div style={{ fontWeight: 'bold' }}>Informing via SMS</div>
       </div>
 
@@ -188,26 +186,15 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
         <li>Singer finance is not liable for the defects or title of the items described in the invoice and defects of the item or title of the ownership of the item will not be affected to the repayment of the monthly instalments.</li>
       </ol>
 
-      <div className="legal-text" style={{ marginTop: '2px', fontWeight: 'bold' }}>
-        This offer is valid only for 07 days.
-      </div>
+      <div className="legal-text" style={{ marginTop: '0', fontWeight: 'bold' }}>This offer is valid only for 07 days.</div>
 
-      <div className="legal-text" style={{ marginTop: '2px' }}>
-        Please return the attached copy of this letter duly signed thereby indicating your understanding and acceptance of the terms and condition under which this facility is granted and of the security which is stipulated herein.
-      </div>
+      <div className="legal-text" style={{ marginTop: '0' }}>Please return the attached copy of this letter duly signed thereby indicating your understanding and acceptance of the terms and condition under which this facility is granted and of the security which is stipulated herein.</div>
 
-      <div className="legal-text" style={{ marginTop: '1px' }}>
-        We look forward to a mutually beneficial relationship.
-      </div>
+      <div className="legal-text" style={{ marginTop: '0' }}>We look forward to a mutually beneficial relationship.</div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2px', fontSize: '3pt' }}>
-        <div>
-          Your faithfully,<br />
-          <strong>Singer Finance (Lanka) PLC</strong>
-        </div>
-        <div style={{ borderTop: '1px dashed #000', width: '160px', textAlign: 'center', paddingTop: '2px', marginTop: '12px' }}>
-          Accepted the terms and conditions of the facility
-        </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0', fontSize: '2.5pt' }}>
+        <div>Your faithfully,<br /><strong>Singer Finance (Lanka) PLC</strong></div>
+        <div style={{ borderTop: '1px dashed #000', width: '100px', textAlign: 'center', paddingTop: '0', marginTop: '4px' }}>Accepted the terms and conditions of the facility</div>
       </div>
     </div>
   );
