@@ -48,9 +48,9 @@
 /* Document Structure Styling */
 .document-frame {
   border: 1px solid #333;
-  padding: 5px;
+  padding: 8px;
   position: relative;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .doc-header {
@@ -149,31 +149,31 @@
 /* Legal Conditions Footer */
 .offer-letter-title {
   text-align: center;
-  font-size: 7pt;
+  font-size: 6pt;
   font-weight: normal;
-  margin: 5px 0 3px 0;
+  margin: 3px 0 2px 0;
   text-decoration: underline;
 }
 
 .legal-section-title {
-  font-size: 5.5pt;
+  font-size: 4.5pt;
   text-decoration: underline;
   font-weight: bold;
-  margin-top: 3px;
+  margin-top: 2px;
   margin-bottom: 1px;
 }
 
 .legal-text {
-  font-size: 5pt;
+  font-size: 4pt;
   text-align: justify;
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 .legal-list {
-  padding-left: 14px;
-  margin: 2px 0;
+  padding-left: 12px;
+  margin: 1px 0;
 }
 
 .legal-list li {
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }

@@ -166,7 +166,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
 
       <div className="offer-letter-title">Offer Letter Group sale Facility</div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '110px 6px 1fr', rowGap: '1px', fontSize: '5.5pt', marginBottom: '4px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '110px 6px 1fr', rowGap: '1px', fontSize: '4.5pt', marginBottom: '2px' }}>
         <div>1. Facility Amount</div><div>:</div><div style={{ fontStyle: 'italic', color: '#555' }}>As mentioned in the Invoice</div>
         <div>2. Rental</div><div>:</div><div style={{ fontStyle: 'italic', color: '#555' }}>As mentioned in the Invoice</div>
         <div>3. Interest Rate</div><div>:</div><div style={{ fontStyle: 'italic', color: '#555' }}>As mentioned in the Invoice</div>
@@ -188,19 +188,19 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
         <li>Singer finance is not liable for the defects or title of the items described in the invoice and defects of the item or title of the ownership of the item will not be affected to the repayment of the monthly instalments.</li>
       </ol>
 
-      <div className="legal-text" style={{ marginTop: '4px', fontWeight: 'bold' }}>
+      <div className="legal-text" style={{ marginTop: '2px', fontWeight: 'bold' }}>
         This offer is valid only for 07 days.
       </div>
 
-      <div className="legal-text" style={{ marginTop: '4px' }}>
+      <div className="legal-text" style={{ marginTop: '2px' }}>
         Please return the attached copy of this letter duly signed thereby indicating your understanding and acceptance of the terms and condition under which this facility is granted and of the security which is stipulated herein.
       </div>
 
-      <div className="legal-text" style={{ marginTop: '4px' }}>
+      <div className="legal-text" style={{ marginTop: '1px' }}>
         We look forward to a mutually beneficial relationship.
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', fontSize: '5pt' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '4pt' }}>
         <div>
           Your faithfully,<br />
           <strong>Singer Finance (Lanka) PLC</strong>
