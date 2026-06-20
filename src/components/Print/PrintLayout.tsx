@@ -186,7 +186,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
         <div style={{ marginTop: '12px', fontSize: '9pt' }}>
           <div>Your faithfully,<br /><strong>Singer Finance (Lanka) PLC</strong></div>
           <div style={{ marginTop: '0px' }}>Accepted the terms and conditions of the facility</div>
-          <div style={{ borderTop: '1px dashed #000', marginTop: '12px', width: '60%' }}></div>
+          <div style={{ borderTop: '1px dashed #000', marginTop: '36px', width: '60%' }}></div>
           <div style={{ fontSize: '9pt', marginTop: '2px' }}>Signed by the customer</div>
         </div>
       </div>
