@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Form, Input, Select, Button, Space, Row, Col, InputNumber, message } from 'antd';
-import { SaveOutlined, PrinterOutlined, ClearOutlined, ShoppingCartOutlined } from '@ant-design/icons';
+import { SaveOutlined, ClearOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import { useCustomers } from '../../hooks/useCustomers';
 import { useItems } from '../../hooks/useItems';
 import { useSales } from '../../hooks/useSales';
-import type { Sale, SaleItem } from '../../types';
+import type { SaleItem } from '../../types';
 import PrintLayout from '../Print/PrintLayout';
 
 const TERM_RATES: Record<number, number> = {
@@ -145,19 +145,42 @@ export const NewSalePage: React.FC = () => {
     message.info('Form cleared.');
   };
 
-  const handleSaveSale = async () => {
+  const buildPrintData = () => {
+    const formValues = form.getFieldsValue();
+    const activeRows = rows.filter(row => row.modelNumber && row.itemName);
+    const saleItems: SaleItem[] = activeRows.map(row => ({
+      itemName: row.itemName,
+      modelNumber: row.modelNumber,
+      cashPrice: row.cashPrice,
+      rental: row.rental,
+      term: row.term || overallTerm || 0,
+    }));
+    const percentageRate = parseFloat((interestRate * 100).toFixed(2));
+    return {
+      invoiceNo, date,
+      epfNumber: epfNumber || formValues.epfNumber || '',
+      customerName: customerName || formValues.customerName || '',
+      institution: institution || formValues.institution || '',
+      contactNumber: contactNumber || formValues.contactNumber || '',
+      items: saleItems,
+      totalCashPrice,
+      totalRental: totalRentalMonthly,
+      term: overallTerm || 0,
+      interestRate: percentageRate,
+    };
+  };
+
+  const handleSaveAndPrint = async () => {
     try {
       if (!epfNumber) {
         message.error('Please select or enter an EPF number.');
         return;
       }
-      
       const activeRows = rows.filter(row => row.modelNumber && row.itemName);
       if (activeRows.length === 0) {
         message.error('Please add at least one item to the sale.');
         return;
       }
-
       if (!overallTerm) {
         message.error('Please select the term of the agreement.');
         return;
@@ -171,64 +194,19 @@ export const NewSalePage: React.FC = () => {
         term: row.term || overallTerm,
       }));
 
-      const saleData: Omit<Sale, 'createdBy'> = {
-        invoiceNo,
-        date,
-        epfNumber,
-        customerName,
-        institution,
-        contactNumber,
-        nic,
-        items: saleItems,
-        totalCashPrice,
-        totalRentalMonthly,
-        overallTerm,
-        interestRate,
-      };
+      await addSale({
+        invoiceNo, date, epfNumber, customerName, institution,
+        contactNumber, nic, items: saleItems,
+        totalCashPrice, totalRentalMonthly, overallTerm, interestRate,
+      });
 
-      await addSale(saleData);
-      message.success(`Sale saved successfully! Invoice: ${invoiceNo}`);
+      message.success(`Sale saved! Invoice: ${invoiceNo}`);
+      setPrintSaleData(buildPrintData());
       handleClearForm();
     } catch (error) {
       console.error(error);
       message.error('Failed to save the sale record.');
     }
-  };
-
-  const handlePrint = () => {
-    const formValues = form.getFieldsValue();
-    const activeRows = rows.filter(row => row.modelNumber);
-    if (activeRows.length === 0 && !epfNumber) {
-      message.warning('Form is empty. Enter details before printing.');
-    }
-    
-    const saleItems: SaleItem[] = rows
-      .filter(row => row.modelNumber)
-      .map(row => ({
-        itemName: row.itemName,
-        modelNumber: row.modelNumber,
-        cashPrice: row.cashPrice,
-        rental: row.rental,
-        term: row.term || overallTerm || 0,
-      }));
-
-    const percentageRate = parseFloat((interestRate * 100).toFixed(2));
-
-    const saleData = {
-      invoiceNo,
-      date,
-      epfNumber: epfNumber || formValues.epfNumber || '',
-      customerName: customerName || formValues.customerName || '',
-      institution: institution || formValues.institution || '',
-      contactNumber: contactNumber || formValues.contactNumber || '',
-      items: saleItems,
-      totalCashPrice,
-      totalRental: totalRentalMonthly,
-      term: overallTerm || 0,
-      interestRate: percentageRate,
-    };
-
-    setPrintSaleData(saleData);
   };
 
   return (
@@ -456,20 +434,13 @@ export const NewSalePage: React.FC = () => {
               Clear Form
             </Button>
             <Button 
-              icon={<PrinterOutlined />} 
-              onClick={handlePrint}
-              size="large"
-            >
-              Print Form
-            </Button>
-            <Button 
               type="primary" 
               icon={<SaveOutlined />} 
-              onClick={handleSaveSale}
+              onClick={handleSaveAndPrint}
               size="large"
               className="bg-blue-600 hover:bg-blue-500"
             >
-              Save Sale
+              Save &amp; Print
             </Button>
           </div>
         </Form>
