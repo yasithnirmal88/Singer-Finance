@@ -190,6 +190,9 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
           <div style={{ fontSize: '9pt', marginTop: '2px' }}>Signed by the customer</div>
         </div>
       </div>
+      <div className="print-page-footer">
+        Singer Showroom - No. 91, New Galle Road, Moratuwa. Tel: 0112-647856 / 0755-144000
+      </div>
     </div>
   );
 };
