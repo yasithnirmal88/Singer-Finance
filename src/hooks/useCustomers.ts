@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { collection, doc, setDoc, deleteDoc, onSnapshot, query, writeBatch, getDocs } from 'firebase/firestore';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { collection, doc, setDoc, deleteDoc, onSnapshot, query, writeBatch, getDocs, orderBy, startAt, endAt, limit } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import type { Customer } from '../types';
@@ -12,6 +12,14 @@ export const useCustomers = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const localTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const persistCustomers = useCallback((data: Customer[]) => {
+    if (localTimer.current) clearTimeout(localTimer.current);
+    localTimer.current = setTimeout(() => {
+      localStorage.setItem('sf_customers', JSON.stringify(data));
+    }, 500);
+  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -20,7 +28,6 @@ export const useCustomers = () => {
       return;
     }
 
-    // Scoped to /users/{uid}/customers
     const customersRef = collection(db, 'users', user.uid, 'customers');
     const q = query(customersRef);
 
@@ -31,9 +38,8 @@ export const useCustomers = () => {
         snapshot.forEach((doc) => {
           list.push(doc.data() as Customer);
         });
-        // Sort customers alphabetically by customerName
         list.sort((a, b) => a.customerName.localeCompare(b.customerName));
-        localStorage.setItem('sf_customers', JSON.stringify(list));
+        persistCustomers(list);
         setCustomers(list);
         setLoading(false);
       },
@@ -45,18 +51,57 @@ export const useCustomers = () => {
     );
 
     return unsubscribe;
+  }, [user, persistCustomers]);
+
+  const searchCustomers = useCallback(async (query_text: string): Promise<Customer[]> => {
+    if (!user || !query_text || query_text.length < 2) return [];
+
+    try {
+      const customersRef = collection(db, 'users', user.uid, 'customers');
+
+      const q1 = query(
+        customersRef,
+        orderBy('epfNumber'),
+        startAt(query_text),
+        endAt(query_text + '\uf8ff'),
+        limit(20)
+      );
+      const snap1 = await getDocs(q1);
+      const byEpf: Customer[] = [];
+      snap1.forEach((d) => byEpf.push(d.data() as Customer));
+
+      if (byEpf.length >= 20) return byEpf;
+
+      const q2 = query(
+        customersRef,
+        orderBy('customerName'),
+        startAt(query_text),
+        endAt(query_text + '\uf8ff'),
+        limit(20 - byEpf.length)
+      );
+      const snap2 = await getDocs(q2);
+      const seen = new Set(byEpf.map((c) => c.epfNumber));
+      snap2.forEach((d) => {
+        const c = d.data() as Customer;
+        if (!seen.has(c.epfNumber)) byEpf.push(c);
+      });
+
+      return byEpf.slice(0, 20);
+    } catch (err) {
+      console.error('Error searching customers:', err);
+      return [];
+    }
   }, [user]);
 
   const addCustomer = async (customer: Customer) => {
     if (!user) throw new Error('User not authenticated');
-    // epfNumber is the unique string (primary key)
     const docRef = doc(db, 'users', user.uid, 'customers', customer.epfNumber);
     await setDoc(docRef, customer);
 
     setCustomers((prev) => {
       const updated = [...prev.filter(c => c.epfNumber !== customer.epfNumber), customer];
       updated.sort((a, b) => a.customerName.localeCompare(b.customerName));
-      localStorage.setItem('sf_customers', JSON.stringify(updated));
+      persistCustomers(updated);
       return updated;
     });
   };
@@ -68,7 +113,7 @@ export const useCustomers = () => {
 
     setCustomers((prev) => {
       const updated = prev.filter((c) => c.epfNumber !== epfNumber);
-      localStorage.setItem('sf_customers', JSON.stringify(updated));
+      persistCustomers(updated);
       return updated;
     });
   };
@@ -76,7 +121,6 @@ export const useCustomers = () => {
   const bulkAddCustomers = async (customerList: Customer[]) => {
     if (!user) throw new Error('User not authenticated');
     
-    // Chunk into batches of 500 documents
     const chunkSize = 500;
     for (let i = 0; i < customerList.length; i += chunkSize) {
       const chunk = customerList.slice(i, i + chunkSize);
@@ -95,7 +139,7 @@ export const useCustomers = () => {
       customerList.forEach(c => map.set(c.epfNumber, c));
       const updated = Array.from(map.values());
       updated.sort((a, b) => a.customerName.localeCompare(b.customerName));
-      localStorage.setItem('sf_customers', JSON.stringify(updated));
+      persistCustomers(updated);
       return updated;
     });
   };
@@ -123,5 +167,5 @@ export const useCustomers = () => {
     localStorage.removeItem('sf_customers');
   };
 
-  return { customers, loading, error, addCustomer, deleteCustomer, bulkAddCustomers, clearAllCustomers };
+  return { customers, loading, error, addCustomer, deleteCustomer, bulkAddCustomers, clearAllCustomers, searchCustomers };
 };

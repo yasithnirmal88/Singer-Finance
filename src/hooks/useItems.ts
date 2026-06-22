@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { collection, doc, setDoc, deleteDoc, onSnapshot, query, writeBatch, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
@@ -12,6 +12,14 @@ export const useItems = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const localTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const persistItems = useCallback((data: Item[]) => {
+    if (localTimer.current) clearTimeout(localTimer.current);
+    localTimer.current = setTimeout(() => {
+      localStorage.setItem('sf_items', JSON.stringify(data));
+    }, 500);
+  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -20,7 +28,6 @@ export const useItems = () => {
       return;
     }
 
-    // Scoped to /users/{uid}/items
     const itemsRef = collection(db, 'users', user.uid, 'items');
     const q = query(itemsRef);
 
@@ -31,9 +38,8 @@ export const useItems = () => {
         snapshot.forEach((doc) => {
           list.push(doc.data() as Item);
         });
-        // Sort items alphabetically by modelNumber
         list.sort((a, b) => a.modelNumber.localeCompare(b.modelNumber));
-        localStorage.setItem('sf_items', JSON.stringify(list));
+        persistItems(list);
         setItems(list);
         setLoading(false);
       },
@@ -45,7 +51,7 @@ export const useItems = () => {
     );
 
     return unsubscribe;
-  }, [user]);
+  }, [user, persistItems]);
 
   const addItem = async (item: Item) => {
     if (!user) throw new Error('User not authenticated');
@@ -56,7 +62,7 @@ export const useItems = () => {
     setItems((prev) => {
       const updated = [...prev.filter(it => it.modelNumber !== normalizedItem.modelNumber), normalizedItem];
       updated.sort((a, b) => a.modelNumber.localeCompare(b.modelNumber));
-      localStorage.setItem('sf_items', JSON.stringify(updated));
+      persistItems(updated);
       return updated;
     });
   };
@@ -69,7 +75,7 @@ export const useItems = () => {
 
     setItems((prev) => {
       const updated = prev.filter((it) => it.modelNumber !== upperModel);
-      localStorage.setItem('sf_items', JSON.stringify(updated));
+      persistItems(updated);
       return updated;
     });
   };
@@ -77,7 +83,6 @@ export const useItems = () => {
   const bulkAddItems = async (itemList: Item[]) => {
     if (!user) throw new Error('User not authenticated');
     
-    // Chunk into batches of 500 documents
     const chunkSize = 500;
     for (let i = 0; i < itemList.length; i += chunkSize) {
       const chunk = itemList.slice(i, i + chunkSize);
@@ -99,7 +104,7 @@ export const useItems = () => {
       });
       const updated = Array.from(map.values());
       updated.sort((a, b) => a.modelNumber.localeCompare(b.modelNumber));
-      localStorage.setItem('sf_items', JSON.stringify(updated));
+      persistItems(updated);
       return updated;
     });
   };

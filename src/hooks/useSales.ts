@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { collection, doc, setDoc, deleteDoc, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
@@ -12,6 +12,14 @@ export const useSales = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const localTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const persistSales = useCallback((data: Sale[]) => {
+    if (localTimer.current) clearTimeout(localTimer.current);
+    localTimer.current = setTimeout(() => {
+      localStorage.setItem('sf_sales', JSON.stringify(data));
+    }, 500);
+  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -20,7 +28,6 @@ export const useSales = () => {
       return;
     }
 
-    // Scoped to /users/{uid}/sales
     const salesRef = collection(db, 'users', user.uid, 'sales');
     const q = query(salesRef, orderBy('invoiceNo', 'desc'));
 
@@ -31,7 +38,7 @@ export const useSales = () => {
         snapshot.forEach((doc) => {
           list.push({ id: doc.id, ...doc.data() } as Sale);
         });
-        localStorage.setItem('sf_sales', JSON.stringify(list));
+        persistSales(list);
         setSales(list);
         setLoading(false);
       },
@@ -43,13 +50,13 @@ export const useSales = () => {
     );
 
     return unsubscribe;
-  }, [user]);
+  }, [user, persistSales]);
 
   const addSale = async (sale: Omit<Sale, 'createdBy'>) => {
     if (!user) throw new Error('User not authenticated');
     
     const salesRef = collection(db, 'users', user.uid, 'sales');
-    const docRef = doc(salesRef, sale.invoiceNo); // invoiceNo as document ID
+    const docRef = doc(salesRef, sale.invoiceNo);
     
     const completeSale: Sale = {
       ...sale,
@@ -61,7 +68,7 @@ export const useSales = () => {
     setSales((prev) => {
       const updated = [completeSale, ...prev.filter(s => s.invoiceNo !== completeSale.invoiceNo)];
       updated.sort((a, b) => b.invoiceNo.localeCompare(a.invoiceNo));
-      localStorage.setItem('sf_sales', JSON.stringify(updated));
+      persistSales(updated);
       return updated;
     });
   };
@@ -73,12 +80,11 @@ export const useSales = () => {
 
     setSales((prev) => {
       const updated = prev.filter((s) => s.invoiceNo !== id && s.id !== id);
-      localStorage.setItem('sf_sales', JSON.stringify(updated));
+      persistSales(updated);
       return updated;
     });
   };
 
-  // Helper to generate the next invoice number based on local state (for real-time consistency)
   const generateNextInvoiceNo = () => {
     const prefix = 'U ';
 

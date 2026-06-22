@@ -4,7 +4,7 @@ import { SaveOutlined, ClearOutlined, ShoppingCartOutlined } from '@ant-design/i
 import { useCustomers } from '../../hooks/useCustomers';
 import { useItems } from '../../hooks/useItems';
 import { useSales } from '../../hooks/useSales';
-import type { SaleItem } from '../../types';
+import type { Customer, SaleItem } from '../../types';
 import PrintLayout from '../Print/PrintLayout';
 
 const TERM_RATES: Record<number, number> = {
@@ -15,7 +15,7 @@ const TERM_RATES: Record<number, number> = {
 };
 
 export const NewSalePage: React.FC = () => {
-  const { customers } = useCustomers();
+  const { customers, searchCustomers } = useCustomers();
   const { items } = useItems();
   const { addSale, generateNextInvoiceNo } = useSales();
 
@@ -28,6 +28,8 @@ export const NewSalePage: React.FC = () => {
   const [institution, setInstitution] = useState('');
   const [contactNumber, setContactNumber] = useState('');
   const [nic, setNic] = useState('');
+  const [searchResults, setSearchResults] = useState<Customer[]>([]);
+  const [searching, setSearching] = useState(false);
 
   interface RowState {
     modelNumber: string;
@@ -245,13 +247,21 @@ export const NewSalePage: React.FC = () => {
                 <Select
                   showSearch
                   placeholder="Search EPF Number"
-                  optionFilterProp="label"
+                  filterOption={false}
+                  onSearch={async (value) => {
+                    if (!value || value.length < 2) {
+                      setSearchResults([]);
+                      return;
+                    }
+                    setSearching(true);
+                    const results = await searchCustomers(value);
+                    setSearchResults(results);
+                    setSearching(false);
+                  }}
                   onChange={handleCustomerSelect}
-                  filterOption={(input, option) =>
-                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                  }
                   value={epfNumber || undefined}
-                  options={customers.map(c => ({
+                  notFoundContent={searching ? 'Searching...' : 'Type at least 2 characters to search'}
+                  options={searchResults.map(c => ({
                     value: c.epfNumber,
                     label: `${c.epfNumber} - ${c.customerName}`,
                   }))}
