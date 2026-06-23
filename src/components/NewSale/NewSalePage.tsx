@@ -236,16 +236,18 @@ export const NewSalePage: React.FC = () => {
           requiredMark={false}
         >
           <Row gutter={[16, 16]}>
-            <Col xs={24} md={6}>
+            <Col xs={24} md={4}>
               <Form.Item label="Date" required>
                 <Input type="date" value={date} onChange={e => setDate(e.target.value)} />
               </Form.Item>
             </Col>
             
-            <Col xs={24} md={6}>
+            <Col xs={24} md={10}>
               <Form.Item label="EPF Number" required>
                 <Select
                   showSearch
+                  size="large"
+                  className="w-full"
                   placeholder="Search EPF Number"
                   filterOption={false}
                   onSearch={async (value) => {
@@ -269,7 +271,7 @@ export const NewSalePage: React.FC = () => {
               </Form.Item>
             </Col>
 
-            <Col xs={24} md={6}>
+            <Col xs={24} md={5}>
               <Form.Item name="customerName" label="Customer Name">
                 <Input 
                   value={customerName} 
@@ -281,7 +283,7 @@ export const NewSalePage: React.FC = () => {
               </Form.Item>
             </Col>
 
-            <Col xs={24} md={6}>
+            <Col xs={24} md={5}>
               <Form.Item name="institution" label="Institution">
                 <Input 
                   value={institution} 

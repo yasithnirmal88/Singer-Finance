@@ -14,6 +14,100 @@ import * as XLSX from 'xlsx';
 
 const { Text, Paragraph } = Typography;
 
+const uploadClassName = 'w-full [&_.ant-upload]:!block [&_.ant-upload]:!w-full';
+
+const DatabaseCard: React.FC<{
+  title: string;
+  totalLabel: string;
+  totalCount: number;
+  uploadLabel: string;
+  clearLabel: string;
+  loading: boolean;
+  onUpload: (file: File) => false | void;
+  onClear: () => void;
+  onDownloadTemplate: () => void;
+}> = ({
+  title,
+  totalLabel,
+  totalCount,
+  uploadLabel,
+  clearLabel,
+  loading,
+  onUpload,
+  onClear,
+  onDownloadTemplate,
+}) => (
+  <Card
+    type="inner"
+    title={title}
+    className="border border-slate-100 rounded-lg shadow-inner w-full"
+    extra={
+      <Button
+        type="link"
+        icon={<DownloadOutlined />}
+        onClick={onDownloadTemplate}
+        className="p-0 text-blue-600"
+      >
+        Template
+      </Button>
+    }
+  >
+    <div className="flex flex-col gap-4">
+      <div className="bg-slate-50 p-4 rounded-lg flex items-center justify-between min-h-[88px]">
+        <div>
+          <Text type="secondary" className="block text-xs mb-1">
+            {totalLabel}
+          </Text>
+          <Text className="font-bold text-2xl text-slate-800 leading-none">{totalCount}</Text>
+        </div>
+        {totalCount > 0 && <CheckCircleOutlined className="text-emerald-500 text-2xl shrink-0" />}
+      </div>
+
+      <div className="flex flex-col w-full">
+        <Upload
+          className={uploadClassName}
+          beforeUpload={onUpload}
+          accept=".xlsx,.xls,.csv"
+          showUploadList={false}
+          disabled={loading}
+        >
+          <Button
+            type="primary"
+            icon={<UploadOutlined />}
+            loading={loading}
+            block
+            className="bg-blue-600 hover:bg-blue-500"
+          >
+            {uploadLabel}
+          </Button>
+        </Upload>
+
+        <div className="mt-3 w-full">
+          <Popconfirm
+            title={`Clear ${title}`}
+            description="This will permanently delete all records. Are you sure?"
+            onConfirm={onClear}
+            okText="Yes, Wipe Database"
+            cancelText="No"
+            okButtonProps={{ danger: true, loading }}
+          >
+            <div className="w-full">
+              <Button
+                danger
+                icon={<DeleteOutlined />}
+                block
+                disabled={totalCount === 0 || loading}
+              >
+                {clearLabel}
+              </Button>
+            </div>
+          </Popconfirm>
+        </div>
+      </div>
+    </div>
+  </Card>
+);
+
 export const DataManagement: React.FC = () => {
   const { bulkAddCustomers, clearAllCustomers, customers } = useCustomers();
   const { bulkAddItems, clearAllItems, items } = useItems();
@@ -219,136 +313,32 @@ export const DataManagement: React.FC = () => {
         </Paragraph>
 
         <Row gutter={[24, 24]} className="mt-6">
-          {/* Customers database card */}
           <Col xs={24} md={12}>
-            <Card 
-              type="inner"
+            <DatabaseCard
               title="Customer Database"
-              className="border border-slate-100 rounded-lg shadow-inner h-full flex flex-col"
-              extra={
-                <Button 
-                  type="link" 
-                  icon={<DownloadOutlined />} 
-                  onClick={downloadCustomerTemplate}
-                  className="p-0 text-blue-600"
-                >
-                  Template
-                </Button>
-              }
-            >
-              <div className="flex-1 flex flex-col justify-between space-y-4">
-                <div className="bg-slate-50 p-4 rounded-lg flex items-center justify-between">
-                  <div>
-                    <Text type="secondary" className="block text-xs">Total Customers Loaded</Text>
-                    <Text className="font-bold text-2xl text-slate-800">{customers.length}</Text>
-                  </div>
-                  {customers.length > 0 && <CheckCircleOutlined className="text-emerald-500 text-2xl" />}
-                </div>
-
-                <div className="space-y-2">
-                  <Upload 
-                    beforeUpload={handleCustomerUpload}
-                    accept=".xlsx,.xls,.csv"
-                    showUploadList={false}
-                    disabled={custLoading}
-                  >
-                    <Button 
-                      type="primary" 
-                      icon={<UploadOutlined />} 
-                      loading={custLoading}
-                      block
-                      className="bg-blue-600 hover:bg-blue-500"
-                    >
-                      Upload Customer Excel
-                    </Button>
-                  </Upload>
-
-                  <Popconfirm
-                    title="Clear Customer Database"
-                    description="This will permanently delete all customer records. Are you sure?"
-                    onConfirm={handleClearCustomers}
-                    okText="Yes, Wipe Database"
-                    cancelText="No"
-                    okButtonProps={{ danger: true, loading: custLoading }}
-                  >
-                    <Button 
-                      danger 
-                      icon={<DeleteOutlined />} 
-                      block 
-                      disabled={customers.length === 0 || custLoading}
-                    >
-                      Clear Customer Database
-                    </Button>
-                  </Popconfirm>
-                </div>
-              </div>
-            </Card>
+              totalLabel="Total Customers Loaded"
+              totalCount={customers.length}
+              uploadLabel="Upload Customer Excel"
+              clearLabel="Clear Customer Database"
+              loading={custLoading}
+              onUpload={handleCustomerUpload}
+              onClear={handleClearCustomers}
+              onDownloadTemplate={downloadCustomerTemplate}
+            />
           </Col>
 
-          {/* Items database card */}
           <Col xs={24} md={12}>
-            <Card 
-              type="inner"
+            <DatabaseCard
               title="Items Inventory Database"
-              className="border border-slate-100 rounded-lg shadow-inner h-full flex flex-col"
-              extra={
-                <Button 
-                  type="link" 
-                  icon={<DownloadOutlined />} 
-                  onClick={downloadItemTemplate}
-                  className="p-0 text-blue-600"
-                >
-                  Template
-                </Button>
-              }
-            >
-              <div className="flex-1 flex flex-col justify-between space-y-4">
-                <div className="bg-slate-50 p-4 rounded-lg flex items-center justify-between">
-                  <div>
-                    <Text type="secondary" className="block text-xs">Total Items Loaded</Text>
-                    <Text className="font-bold text-2xl text-slate-800">{items.length}</Text>
-                  </div>
-                  {items.length > 0 && <CheckCircleOutlined className="text-emerald-500 text-2xl" />}
-                </div>
-
-                <div className="space-y-2">
-                  <Upload 
-                    beforeUpload={handleItemUpload}
-                    accept=".xlsx,.xls,.csv"
-                    showUploadList={false}
-                    disabled={itemLoading}
-                  >
-                    <Button 
-                      type="primary" 
-                      icon={<UploadOutlined />} 
-                      loading={itemLoading}
-                      block
-                      className="bg-blue-600 hover:bg-blue-500"
-                    >
-                      Upload Items Excel
-                    </Button>
-                  </Upload>
-
-                  <Popconfirm
-                    title="Clear Items Database"
-                    description="This will permanently delete all item records. Are you sure?"
-                    onConfirm={handleClearItems}
-                    okText="Yes, Wipe Database"
-                    cancelText="No"
-                    okButtonProps={{ danger: true, loading: itemLoading }}
-                  >
-                    <Button 
-                      danger 
-                      icon={<DeleteOutlined />} 
-                      block 
-                      disabled={items.length === 0 || itemLoading}
-                    >
-                      Clear Items Database
-                    </Button>
-                  </Popconfirm>
-                </div>
-              </div>
-            </Card>
+              totalLabel="Total Items Loaded"
+              totalCount={items.length}
+              uploadLabel="Upload Items Excel"
+              clearLabel="Clear Items Database"
+              loading={itemLoading}
+              onUpload={handleItemUpload}
+              onClear={handleClearItems}
+              onDownloadTemplate={downloadItemTemplate}
+            />
           </Col>
         </Row>
       </Card>
