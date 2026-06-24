@@ -408,9 +408,9 @@ export const NewSalePage: React.FC = () => {
             <Col xs={24} sm={12} md={6}>
               <Form.Item label="Interest Rate (Nominal)">
                 <Input 
-                  value={interestRate ? `${(interestRate * 100).toFixed(3)} %` : ''} 
+                  value=""
                   readOnly 
-                  className="bg-slate-50 font-semibold"
+                  className="bg-slate-50"
                 />
               </Form.Item>
             </Col>

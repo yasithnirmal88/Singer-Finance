@@ -328,9 +328,9 @@ export const SalesHistoryPage: React.FC = () => {
                 </Text>
               </div>
               <div>
-                <Text type="secondary" className="block text-xs">Term / Interest Rate</Text>
+                <Text type="secondary" className="block text-xs">Term</Text>
                 <Text className="font-bold text-base text-slate-800">
-                  {selectedSale.overallTerm} M / {(selectedSale.interestRate * 100).toFixed(3)}%
+                  {selectedSale.overallTerm} M
                 </Text>
               </div>
             </div>
