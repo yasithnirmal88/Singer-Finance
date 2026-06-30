@@ -91,9 +91,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ activeTab, setActiveTab, c
         width={240}
       >
         <div className="h-16 flex items-center justify-center border-b border-slate-800 gap-2 px-4 overflow-hidden">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
-            <span className="text-white font-bold tracking-wider text-sm">SF</span>
-          </div>
+          <img src="/Singer-Logo.png" alt="Singer Finance" style={{ height: '32px', width: 'auto' }} />
           {!collapsed && (
             <span className="text-slate-100 font-bold text-sm tracking-wide transition-opacity duration-300 whitespace-nowrap">
               SINGER FINANCE
@@ -127,7 +125,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ activeTab, setActiveTab, c
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={['click']}>
               <div className="flex items-center gap-2 cursor-pointer hover:bg-slate-50 p-2 rounded-lg transition-colors">
                 <Avatar 
-                  style={{ backgroundColor: '#1d4ed8', verticalAlign: 'middle' }}
+                  style={{ backgroundColor: '#d6073b', verticalAlign: 'middle' }}
                   icon={<UserOutlined />}
                 />
                 <div className="hidden sm:block text-left">

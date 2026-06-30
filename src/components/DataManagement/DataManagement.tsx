@@ -47,7 +47,7 @@ const DatabaseCard: React.FC<{
         type="link"
         icon={<DownloadOutlined />}
         onClick={onDownloadTemplate}
-        className="p-0 text-blue-600"
+        className="p-0 text-singer"
       >
         Template
       </Button>
@@ -77,7 +77,7 @@ const DatabaseCard: React.FC<{
             icon={<UploadOutlined />}
             loading={loading}
             block
-            className="bg-blue-600 hover:bg-blue-500"
+            className="bg-singer hover:bg-singer-dark"
           >
             {uploadLabel}
           </Button>
@@ -303,7 +303,7 @@ export const DataManagement: React.FC = () => {
         className="shadow-sm rounded-xl"
         title={
           <Space>
-            <DatabaseOutlined className="text-blue-600" />
+            <DatabaseOutlined className="text-singer" />
             <span className="font-semibold text-lg">Sales Data Batch Management</span>
           </Space>
         }

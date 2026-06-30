@@ -219,7 +219,7 @@ export const NewSalePage: React.FC = () => {
         title={
           <div className="flex justify-between items-center w-full">
             <Space>
-              <ShoppingCartOutlined className="text-blue-600 text-lg" />
+              <ShoppingCartOutlined className="text-singer text-lg" />
               <span className="font-semibold text-lg">New Sale Form</span>
             </Space>
             <span className="text-red-500 font-bold font-mono text-base bg-red-50 px-3 py-1 rounded">
@@ -428,7 +428,7 @@ export const NewSalePage: React.FC = () => {
                 <Input 
                   value={`Rs. ${totalRentalMonthly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} 
                   readOnly 
-                  className="bg-slate-50 font-bold text-blue-600"
+                  className="bg-slate-50 font-bold text-singer"
                 />
               </Form.Item>
             </Col>
@@ -448,7 +448,7 @@ export const NewSalePage: React.FC = () => {
               icon={<SaveOutlined />} 
               onClick={handleSaveAndPrint}
               size="large"
-              className="bg-blue-600 hover:bg-blue-500"
+              className="bg-singer hover:bg-singer-dark"
             >
               Save &amp; Print
             </Button>

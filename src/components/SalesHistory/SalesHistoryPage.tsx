@@ -161,7 +161,7 @@ export const SalesHistoryPage: React.FC = () => {
         <Space size="middle">
           <Button
             type="text"
-            icon={<EyeOutlined className="text-blue-500" />}
+            icon={<EyeOutlined className="text-singer" />}
             onClick={() => handleViewDetails(record)}
           />
           <Button
@@ -247,7 +247,7 @@ export const SalesHistoryPage: React.FC = () => {
                 setDetailsModalVisible(false);
               }
             }}
-            className="bg-blue-600 hover:bg-blue-500"
+            className="bg-singer hover:bg-singer-dark"
           >
             Print Invoice
           </Button>
@@ -321,7 +321,7 @@ export const SalesHistoryPage: React.FC = () => {
               </div>
               <div>
                 <Text type="secondary" className="block text-xs">Total Monthly Rental</Text>
-                <Text className="font-bold text-base text-blue-600">
+                <Text className="font-bold text-base text-singer">
                   Rs. {selectedSale.totalRentalMonthly.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </Text>
               </div>

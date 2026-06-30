@@ -180,7 +180,7 @@ export const CustomersPage: React.FC = () => {
         <Space size="middle">
           <Button 
             type="text" 
-            icon={<EditOutlined className="text-blue-500" />} 
+            icon={<EditOutlined className="text-singer" />} 
             onClick={() => handleEditCustomerClick(record)}
           />
           <Popconfirm
@@ -205,7 +205,7 @@ export const CustomersPage: React.FC = () => {
           <Card 
             title={
               <Space>
-                <UserOutlined className="text-blue-600" />
+                <UserOutlined className="text-singer" />
                 <span>Add New Customer</span>
               </Space>
             } 
@@ -266,7 +266,7 @@ export const CustomersPage: React.FC = () => {
                   htmlType="submit" 
                   icon={<PlusOutlined />} 
                   block
-                  className="bg-blue-600 hover:bg-blue-500"
+                  className="bg-singer hover:bg-singer-dark"
                 >
                   Save Customer
                 </Button>
@@ -285,7 +285,7 @@ export const CustomersPage: React.FC = () => {
                 icon={<UploadOutlined />}
                 loading={custLoading}
                 block
-                className="border-dashed border-slate-300 text-slate-600 hover:border-blue-500 hover:text-blue-600"
+                className="border-dashed border-slate-300 text-slate-600 hover:border-singer hover:text-singer"
               >
                 Upload Customers from Excel
               </Button>

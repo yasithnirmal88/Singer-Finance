@@ -65,7 +65,7 @@ export const Login: React.FC = () => {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-tr from-slate-900 via-slate-850 to-blue-950 p-4 relative overflow-hidden">
       {/* Decorative background blobs */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-singer/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
 
       <Card
@@ -73,8 +73,8 @@ export const Login: React.FC = () => {
         styles={{ body: { padding: '32px 24px' } }}
       >
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 shadow-lg mb-3">
-            <span className="text-white text-xl font-bold tracking-wider">SF</span>
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl shadow-lg mb-3 overflow-hidden">
+            <img src="/Singer-Logo.png" alt="Singer Finance" style={{ height: '90px', width: 'auto' }} />
           </div>
           <Title level={3} className="!text-slate-100 !m-0 !font-semibold">
             Singer Finance
@@ -103,7 +103,7 @@ export const Login: React.FC = () => {
               prefix={<UserOutlined className="text-slate-500" />}
               placeholder="Authorized email (e.g., surangi19831011@gmail.com)"
               size="large"
-              className="bg-slate-950/40 border-slate-800 text-slate-200 hover:border-blue-500/50 focus:border-blue-500/50 hover:bg-slate-950/60 focus:bg-slate-950/60 placeholder-slate-500"
+              className="bg-slate-950/40 border-slate-800 text-slate-200 hover:border-singer/50 focus:border-singer/50 hover:bg-slate-950/60 focus:bg-slate-950/60 placeholder-slate-500"
             />
           </Form.Item>
 
@@ -117,7 +117,7 @@ export const Login: React.FC = () => {
               prefix={<LockOutlined className="text-slate-500" />}
               placeholder="Password"
               size="large"
-              className="bg-slate-950/40 border-slate-800 text-slate-200 hover:border-blue-500/50 focus:border-blue-500/50 hover:bg-slate-950/60 focus:bg-slate-950/60 placeholder-slate-500"
+              className="bg-slate-950/40 border-slate-800 text-slate-200 hover:border-singer/50 focus:border-singer/50 hover:bg-slate-950/60 focus:bg-slate-950/60 placeholder-slate-500"
             />
           </Form.Item>
 
@@ -129,7 +129,7 @@ export const Login: React.FC = () => {
               block
               loading={loading}
               icon={<LoginOutlined />}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 border-none hover:from-blue-500 hover:to-indigo-500 h-11 text-base font-medium shadow-lg shadow-blue-500/20"
+              className="bg-gradient-to-r from-singer to-singer-dark border-none hover:from-singer-light hover:to-singer-dark h-11 text-base font-medium shadow-lg shadow-singer/20"
             >
               Sign In
             </Button>

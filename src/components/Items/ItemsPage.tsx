@@ -188,7 +188,7 @@ export const ItemsPage: React.FC = () => {
         <Space size="middle">
           <Button 
             type="text" 
-            icon={<EditOutlined className="text-blue-500" />} 
+            icon={<EditOutlined className="text-singer" />} 
             onClick={() => handleEditItemClick(record)}
           />
           <Popconfirm
@@ -213,7 +213,7 @@ export const ItemsPage: React.FC = () => {
           <Card 
             title={
               <Space>
-                <ShoppingOutlined className="text-blue-600" />
+                <ShoppingOutlined className="text-singer" />
                 <span>Add New Item</span>
               </Space>
             } 
@@ -280,7 +280,7 @@ export const ItemsPage: React.FC = () => {
                   htmlType="submit" 
                   icon={<PlusOutlined />} 
                   block
-                  className="bg-blue-600 hover:bg-blue-500"
+                  className="bg-singer hover:bg-singer-dark"
                 >
                   Save Item
                 </Button>
@@ -299,7 +299,7 @@ export const ItemsPage: React.FC = () => {
                 icon={<UploadOutlined />}
                 loading={uploadLoading}
                 block
-                className="border-dashed border-slate-300 text-slate-600 hover:border-blue-500 hover:text-blue-600"
+                className="border-dashed border-slate-300 text-slate-600 hover:border-singer hover:text-singer"
               >
                 Upload Items from Excel
               </Button>
@@ -360,7 +360,7 @@ export const ItemsPage: React.FC = () => {
           setEditingItem(null);
         }}
         okText="Save Changes"
-        okButtonProps={{ className: 'bg-blue-600 hover:bg-blue-500' }}
+        okButtonProps={{ className: 'bg-singer hover:bg-singer-dark' }}
       >
         <Form
           form={editForm}

@@ -39,7 +39,8 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
         </div>
 
         <div className="doc-header">
-          <div className="company-title">Financed by Singer Finance (Lanka) PLC</div>
+          <img src="/Singer-Logo.png" alt="Singer Finance" style={{ height: '55px', marginBottom: '4px' }} />
+          <div className="company-title">Singer Finance (Lanka) PLC</div>
           <div className="company-address">No. 498, R. A. De Mel Mawatha, Colombo 03. Tel : 0112 400 400</div>
         </div>
 
