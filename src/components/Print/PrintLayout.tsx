@@ -141,7 +141,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
             </div>
           </div>
 
-          <div style={{ border: '1px solid #000', height: '110px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8.5pt', textAlign: 'center', padding: '4px' }}>
+          <div style={{ border: '1px solid #000', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8.5pt', textAlign: 'center', padding: '4px' }}>
           </div>
         </div>
       </div>

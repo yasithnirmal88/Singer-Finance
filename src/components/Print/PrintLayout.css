@@ -42,9 +42,9 @@
 .sub-header-cell { font-size: 7.5pt !important; padding: 0 !important; }
 
 .stamp-box {
-  border: 1px solid #000; color: #000;
+  border: 2px dashed #5d4037; color: #4a148c;
   padding: 5px; text-align: center;
-  font-family: 'Times New Roman', Times, serif; font-size: 8pt;
+  font-family: 'Arial Black', sans-serif; font-size: 8pt;
   line-height: 1.15; max-width: 200px; font-weight: bold;
 }
 
