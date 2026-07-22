@@ -39,7 +39,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
         </div>
 
         <div className="doc-header">
-          <img src="/Singer-Logo.png" alt="Singer Finance" style={{ height: '50px', width: 'auto', objectFit: 'contain' }} />
+          <img src="/Singer-Logo.png" alt="Singer Finance" style={{ height: '50px', width: 'auto', objectFit: 'contain', display: 'block', marginBottom: '-6px' }} />
           <div className="company-title">Singer Finance (Lanka) PLC</div>
           <div className="company-address">No. 498, R. A. De Mel Mawatha, Colombo 03. Tel : 0112 400 400</div>
         </div>
@@ -118,22 +118,22 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr 1fr', gap: '14px', marginTop: '12px', alignItems: 'start' }}>
           <div>
-            <div className="field-row" style={{ marginBottom: '10px' }}>
-              <span style={{ fontSize: '11pt', width: '85px' }}>Total Rental<br />(Monthly)</span>
-              <span className="dotted-line" style={{ border: '1px solid #000', height: '26px', textAlign: 'center', lineHeight: '26px', fontSize: '11pt' }}>
+            <div className="field-row" style={{ marginBottom: '14px' }}>
+              <span style={{ fontSize: '12pt', width: '85px' }}>Total Rental<br />(Monthly)</span>
+              <span className="dotted-line" style={{ border: '1px solid #000', height: '28px', textAlign: 'center', lineHeight: '28px', fontSize: '12pt' }}>
                 {Math.round(saleData.totalRental).toLocaleString()}
               </span>
             </div>
-            <div className="field-row" style={{ marginBottom: '10px' }}>
-              <span style={{ fontSize: '11pt', width: '85px' }}>Term</span>
-              <span className="dotted-line" style={{ border: '1px solid #000', height: '26px', textAlign: 'center', lineHeight: '26px', position: 'relative', fontSize: '11pt' }}>
-                {saleData.term} <span style={{ position: 'absolute', right: '3px', top: '0', fontSize: '9pt', borderLeft: '1px solid #000', paddingLeft: '3px' }}>M</span>
+            <div className="field-row" style={{ marginBottom: '14px' }}>
+              <span style={{ fontSize: '12pt', width: '85px' }}>Term</span>
+              <span className="dotted-line" style={{ border: '1px solid #000', height: '28px', textAlign: 'center', lineHeight: '28px', position: 'relative', fontSize: '12pt' }}>
+                {saleData.term} <span style={{ position: 'absolute', right: '3px', top: '0', fontSize: '10pt', borderLeft: '1px solid #000', paddingLeft: '3px' }}>M</span>
               </span>
             </div>
             <div className="field-row">
-              <span style={{ fontSize: '11pt', width: '85px' }}>Interest Rate<br />(Nominal)</span>
-              <span className="dotted-line interest-rate-box" style={{ border: '1px solid #000', height: '26px', textAlign: 'center', lineHeight: '26px', position: 'relative', fontSize: '11pt' }}>
-                <span className="interest-rate-suffix" style={{ position: 'absolute', right: '3px', top: '0', fontSize: '9pt', borderLeft: '1px solid #000', paddingLeft: '3px' }}>%</span>
+              <span style={{ fontSize: '12pt', width: '85px' }}>Interest Rate<br />(Nominal)</span>
+              <span className="dotted-line interest-rate-box" style={{ border: '1px solid #000', height: '28px', textAlign: 'center', lineHeight: '28px', position: 'relative', fontSize: '12pt' }}>
+                <span className="interest-rate-suffix" style={{ position: 'absolute', right: '3px', top: '0', fontSize: '10pt', borderLeft: '1px solid #000', paddingLeft: '3px' }}>%</span>
               </span>
             </div>
           </div>
