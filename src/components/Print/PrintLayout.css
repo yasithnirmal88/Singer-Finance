@@ -29,7 +29,6 @@
 .company-title { font-size: 20.5pt; font-weight: bold; margin-bottom: 2px; }
 .company-address { font-size: 11.5pt; }
 .serial-number-block { position: absolute; top: 3px; right: 10px; display: flex; align-items: center; }
-.serial-prefix { color: #d32f2f; font-size: 17pt; font-weight: bold; margin-right: 15px; }
 .serial-number { color: #d32f2f; font-size: 17pt; font-weight: bold; font-family: monospace; }
 .field-row { display: flex; margin-bottom: 7px; align-items: flex-end; }
 
