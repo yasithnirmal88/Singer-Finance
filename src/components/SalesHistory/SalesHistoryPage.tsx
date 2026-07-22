@@ -76,6 +76,7 @@ export const SalesHistoryPage: React.FC = () => {
           'EPF': s.epfNumber,
           'Name': s.customerName,
           'ID': s.invoiceNo,
+          'NIC': s.nic || '',
           'mobile': s.contactNumber,
           'Item': item.itemName,
           'model number': item.modelNumber,
@@ -133,6 +134,12 @@ export const SalesHistoryPage: React.FC = () => {
       title: 'EPF Number',
       dataIndex: 'epfNumber',
       key: 'epfNumber',
+    },
+    {
+      title: 'NIC Number',
+      dataIndex: 'nic',
+      key: 'nic',
+      render: (val: string) => val || '-',
     },
     {
       title: 'Total Cash Price',
@@ -273,6 +280,10 @@ export const SalesHistoryPage: React.FC = () => {
               <div>
                 <Text type="secondary" className="block text-xs">Contact Number</Text>
                 <Text className="font-semibold text-slate-800">{selectedSale.contactNumber}</Text>
+              </div>
+              <div>
+                <Text type="secondary" className="block text-xs">NIC Number</Text>
+                <Text className="font-semibold text-slate-800">{selectedSale.nic || '-'}</Text>
               </div>
               <div className="col-span-2">
                 <Text type="secondary" className="block text-xs">Institution</Text>
