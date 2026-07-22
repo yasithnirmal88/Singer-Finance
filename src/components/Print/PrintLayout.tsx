@@ -130,12 +130,6 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
                 {saleData.term} <span style={{ position: 'absolute', right: '3px', top: '0', fontSize: '10pt', borderLeft: '1px solid #000', paddingLeft: '3px' }}>M</span>
               </span>
             </div>
-            <div className="field-row">
-              <span style={{ fontSize: '12pt', width: '85px' }}>Interest Rate<br />(Nominal)</span>
-              <span className="dotted-line interest-rate-box" style={{ border: '1px solid #000', height: '28px', textAlign: 'center', lineHeight: '28px', position: 'relative', fontSize: '12pt' }}>
-                <span className="interest-rate-suffix" style={{ position: 'absolute', right: '3px', top: '0', fontSize: '10pt', borderLeft: '1px solid #000', paddingLeft: '3px' }}>%</span>
-              </span>
-            </div>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -152,7 +146,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
         </div>
       </div>
 
-      <div className="document-frame">
+      <div className="document-frame" style={{ marginTop: '-8px' }}>
         <div className="offer-letter-title">Offer Letter Group sale Facility</div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '110px 6px 1fr', rowGap: '4px', fontSize: '8pt', marginBottom: '8px' }}>

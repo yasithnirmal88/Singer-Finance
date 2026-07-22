@@ -91,7 +91,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ activeTab, setActiveTab, c
         width={240}
       >
         <div className="h-16 flex items-center justify-center border-b border-slate-800 gap-2 px-4 overflow-hidden">
-          <img src="/Singer-Logo.png" alt="Singer Finance" style={{ height: '32px', width: 'auto' }} />
+          <img src="/Singer-Logo.png" alt="Singer Finance" style={{ height: '28px', width: 'auto', objectFit: 'contain', display: 'block' }} />
           {!collapsed && (
             <span className="text-slate-100 font-bold text-sm tracking-wide transition-opacity duration-300 whitespace-nowrap">
               SINGER FINANCE

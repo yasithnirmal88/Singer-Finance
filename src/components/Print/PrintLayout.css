@@ -67,11 +67,3 @@
 .legal-list { padding-left: 16px; margin: 0; }
 .legal-list li { margin-bottom: 4px; }
 
-.interest-rate-box {
-  font-size: 0;
-  color: transparent;
-}
-.interest-rate-box .interest-rate-suffix {
-  font-size: 7pt;
-  color: #000;
-}
