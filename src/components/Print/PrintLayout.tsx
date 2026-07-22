@@ -116,7 +116,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
           </tbody>
         </table>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr 1fr', gap: '14px', marginTop: '4px', alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr 1fr', gap: '14px', marginTop: '-6px', alignItems: 'start' }}>
           <div>
             <div className="field-row" style={{ marginBottom: '14px' }}>
               <span style={{ fontSize: '12.5pt', width: '90px' }}>Total Rental<br />(Monthly)</span>
@@ -183,7 +183,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
         </div>
       </div>
 
-      <div className="print-footer">
+      <div style={{ textAlign: 'center', fontSize: '7pt', fontFamily: 'Arial, sans-serif', color: '#333', padding: '2mm 0 0 0', marginTop: '2px' }}>
         Singer Showroom, No.&nbsp;91, New Galle Road, Moratuwa. Tel: 0112-647856 / 0755-144000
       </div>
     </div>
