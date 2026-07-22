@@ -32,14 +32,14 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
 
   return (
     <div className="print-only-container">
-      <div className="document-frame">
+      <div className="document-frame" style={{ borderBottom: '3px double #333' }}>
         <div className="serial-number-block">
           <span className="serial-prefix">N&ordm;</span>
           <span className="serial-number">{saleData.invoiceNo || '19471'}</span>
         </div>
 
         <div className="doc-header">
-          <img src="/Singer-Logo.png" alt="Singer Finance" style={{ height: '55px', marginBottom: '4px' }} />
+          <img src="/Singer-Logo.png" alt="Singer Finance" style={{ height: '50px', width: 'auto', objectFit: 'contain' }} />
           <div className="company-title">Singer Finance (Lanka) PLC</div>
           <div className="company-address">No. 498, R. A. De Mel Mawatha, Colombo 03. Tel : 0112 400 400</div>
         </div>
@@ -63,12 +63,12 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
           <div>
             <div className="field-row">
               <span style={{ width: '90px', whiteSpace: 'nowrap' }}>EPF Number</span>:
-              <span className="dotted-line" style={{ border: '1px solid #000', height: '24px', padding: '2px 6px', fontSize: '11pt', fontWeight: 'bold' }}>
+              <span className="dotted-line" style={{ fontSize: '16pt', fontWeight: 'bold' }}>
                 {saleData.epfNumber}
               </span>
             </div>
-            <div className="field-row" style={{ marginTop: '8px' }}>
-              <span style={{ width: '90px', whiteSpace: 'nowrap' }}>Date</span>:
+<div className="field-row" style={{ marginTop: '20px' }}>
+               <span style={{ width: '90px', whiteSpace: 'nowrap' }}>Date</span>:
               <span className="dotted-line" style={{ textAlign: 'center' }}>
                 {saleData.date ? new Date(saleData.date).toLocaleDateString('en-GB') : 'DD / MM / YYYY'}
               </span>
@@ -147,8 +147,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
             </div>
           </div>
 
-          <div style={{ border: '1px solid #000', height: '85px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9pt', textAlign: 'center', padding: '4px' }}>
-            Singer Finance (Lanka) PLC
+          <div style={{ border: '1px solid #000', height: '110px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9pt', textAlign: 'center', padding: '4px' }}>
           </div>
         </div>
       </div>
@@ -156,7 +155,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
       <div className="document-frame">
         <div className="offer-letter-title">Offer Letter Group sale Facility</div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '110px 6px 1fr', rowGap: '4px', fontSize: '8.5pt', marginBottom: '8px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '110px 6px 1fr', rowGap: '4px', fontSize: '8pt', marginBottom: '8px' }}>
           <div>1. Facility Amount</div><div>:</div><div style={{ fontStyle: 'italic', color: '#555' }}>As mentioned in the Invoice</div>
           <div>2. Rental</div><div>:</div><div style={{ fontStyle: 'italic', color: '#555' }}>As mentioned in the Invoice</div>
           <div>3. Interest Rate</div><div>:</div><div style={{ fontStyle: 'italic', color: '#555' }}>As mentioned in the Invoice</div>
@@ -182,11 +181,11 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
         <div className="legal-text" style={{ marginTop: '4px' }}>Please return the attached copy of this letter duly signed thereby indicating your understanding and acceptance of the terms and condition under which this facility is granted and of the security which is stipulated herein.</div>
         <div className="legal-text" style={{ marginTop: '4px' }}>We look forward to a mutually beneficial relationship.</div>
 
-        <div style={{ marginTop: '12px', fontSize: '9pt' }}>
+        <div style={{ marginTop: '12px', fontSize: '8.5pt' }}>
           <div>Your faithfully,<br /><strong>Singer Finance (Lanka) PLC</strong></div>
           <div style={{ marginTop: '0px' }}>Accepted the terms and conditions of the facility</div>
           <div style={{ borderTop: '1px dashed #000', marginTop: '36px', width: '60%' }}></div>
-          <div style={{ fontSize: '9pt', marginTop: '2px' }}>Signed by the customer</div>
+          <div style={{ fontSize: '8.5pt', marginTop: '2px' }}>Signed by the customer</div>
         </div>
       </div>
 
