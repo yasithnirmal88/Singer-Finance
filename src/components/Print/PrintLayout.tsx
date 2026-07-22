@@ -80,8 +80,8 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
           <thead>
             <tr>
               <th style={{ width: '5%' }}></th>
-              <th style={{ width: '35%' }}>Item</th>
-              <th style={{ width: '25%' }}>Model</th>
+              <th style={{ width: '25%' }}>Item</th>
+              <th style={{ width: '35%' }}>Model</th>
               <th style={{ width: '15%', padding: 0 }}>
                 <div style={{ borderBottom: '1px solid #000', padding: '2px' }}>Cash Price</div>
                 <div className="sub-header-cell">Rs.</div>
@@ -116,7 +116,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
           </tbody>
         </table>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr 1fr', gap: '14px', marginTop: '12px', alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr 1fr', gap: '14px', marginTop: '4px', alignItems: 'start' }}>
           <div>
             <div className="field-row" style={{ marginBottom: '14px' }}>
               <span style={{ fontSize: '12.5pt', width: '90px' }}>Total Rental<br />(Monthly)</span>
@@ -146,10 +146,10 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
         </div>
       </div>
 
-      <div className="document-frame" style={{ marginTop: '-8px' }}>
+      <div className="document-frame" style={{ marginTop: '-12px' }}>
         <div className="offer-letter-title">Offer Letter Group sale Facility</div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '110px 6px 1fr', rowGap: '4px', fontSize: '7.5pt', marginBottom: '8px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '110px 6px 1fr', rowGap: '4px', fontSize: '7pt', marginBottom: '8px' }}>
           <div>1. Facility Amount</div><div>:</div><div style={{ fontStyle: 'italic', color: '#555' }}>As mentioned in the Invoice</div>
           <div>2. Rental</div><div>:</div><div style={{ fontStyle: 'italic', color: '#555' }}>As mentioned in the Invoice</div>
           <div>3. Interest Rate</div><div>:</div><div style={{ fontStyle: 'italic', color: '#555' }}>As mentioned in the Invoice</div>
@@ -175,11 +175,11 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
         <div className="legal-text" style={{ marginTop: '4px' }}>Please return the attached copy of this letter duly signed thereby indicating your understanding and acceptance of the terms and condition under which this facility is granted and of the security which is stipulated herein.</div>
         <div className="legal-text" style={{ marginTop: '4px' }}>We look forward to a mutually beneficial relationship.</div>
 
-        <div style={{ marginTop: '12px', fontSize: '8pt' }}>
+        <div style={{ marginTop: '12px', fontSize: '7.5pt' }}>
           <div>Your faithfully,<br /><strong>Singer Finance (Lanka) PLC</strong></div>
           <div style={{ marginTop: '0px' }}>Accepted the terms and conditions of the facility</div>
           <div style={{ borderTop: '1px dashed #000', marginTop: '36px', width: '60%' }}></div>
-          <div style={{ fontSize: '8pt', marginTop: '2px' }}>Signed by the customer</div>
+          <div style={{ fontSize: '7.5pt', marginTop: '2px' }}>Signed by the customer</div>
         </div>
       </div>
 
