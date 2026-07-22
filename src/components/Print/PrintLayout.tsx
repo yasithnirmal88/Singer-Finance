@@ -117,7 +117,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
         </table>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr 1fr', gap: '14px', marginTop: '8px', alignItems: 'start' }}>
-          <div>
+          <div style={{ marginTop: '-14px' }}>
             <div className="field-row" style={{ marginBottom: '14px' }}>
               <span style={{ fontSize: '12.5pt', width: '90px' }}>Total Rental<br />(Monthly)</span>
               <span className="dotted-line" style={{ border: '1px solid #000', height: '30px', textAlign: 'center', lineHeight: '30px', fontSize: '12.5pt' }}>
@@ -141,7 +141,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
             </div>
           </div>
 
-          <div style={{ border: '1px solid #000', height: '90px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8.5pt', textAlign: 'center', padding: '4px' }}>
+          <div style={{ border: '1px solid #000', height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8.5pt', textAlign: 'center', padding: '4px' }}>
           </div>
         </div>
       </div>
