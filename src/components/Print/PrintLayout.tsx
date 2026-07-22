@@ -63,7 +63,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
           <div>
             <div className="field-row">
               <span style={{ width: '90px', whiteSpace: 'nowrap' }}>EPF Number</span>:
-              <span className="dotted-line" style={{ fontSize: '18pt', fontWeight: 'bold' }}>
+              <span className="dotted-line" style={{ fontSize: '17.5pt', fontWeight: 'bold' }}>
                 {saleData.epfNumber}
               </span>
             </div>
@@ -106,7 +106,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
               </tr>
             ))}
             <tr>
-              <td colSpan={3} style={{ border: 'none', textAlign: 'right', paddingRight: '8px', fontWeight: 'bold', fontSize: '10pt' }}>TOTAL</td>
+              <td colSpan={3} style={{ border: 'none', textAlign: 'right', paddingRight: '8px', fontWeight: 'bold', fontSize: '9.5pt' }}>TOTAL</td>
               <td style={{ textAlign: 'right', paddingRight: '6px', fontWeight: 'bold' }}>
                 {saleData.totalCashPrice.toLocaleString([], { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </td>
@@ -119,15 +119,15 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr 1fr', gap: '14px', marginTop: '12px', alignItems: 'start' }}>
           <div>
             <div className="field-row" style={{ marginBottom: '14px' }}>
-              <span style={{ fontSize: '13pt', width: '90px' }}>Total Rental<br />(Monthly)</span>
-              <span className="dotted-line" style={{ border: '1px solid #000', height: '30px', textAlign: 'center', lineHeight: '30px', fontSize: '13pt' }}>
+              <span style={{ fontSize: '12.5pt', width: '90px' }}>Total Rental<br />(Monthly)</span>
+              <span className="dotted-line" style={{ border: '1px solid #000', height: '30px', textAlign: 'center', lineHeight: '30px', fontSize: '12.5pt' }}>
                 {Math.round(saleData.totalRental).toLocaleString()}
               </span>
             </div>
             <div className="field-row" style={{ marginBottom: '14px' }}>
-              <span style={{ fontSize: '13pt', width: '90px' }}>Term</span>
-              <span className="dotted-line" style={{ border: '1px solid #000', height: '30px', textAlign: 'center', lineHeight: '30px', position: 'relative', fontSize: '13pt' }}>
-                {saleData.term} <span style={{ position: 'absolute', right: '3px', top: '0', fontSize: '10pt', borderLeft: '1px solid #000', paddingLeft: '3px' }}>M</span>
+              <span style={{ fontSize: '12.5pt', width: '90px' }}>Term</span>
+              <span className="dotted-line" style={{ border: '1px solid #000', height: '30px', textAlign: 'center', lineHeight: '30px', position: 'relative', fontSize: '12.5pt' }}>
+                {saleData.term} <span style={{ position: 'absolute', right: '3px', top: '0', fontSize: '9.5pt', borderLeft: '1px solid #000', paddingLeft: '3px' }}>M</span>
               </span>
             </div>
           </div>
@@ -141,7 +141,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
             </div>
           </div>
 
-          <div style={{ border: '1px solid #000', height: '110px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9pt', textAlign: 'center', padding: '4px' }}>
+          <div style={{ border: '1px solid #000', height: '110px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8.5pt', textAlign: 'center', padding: '4px' }}>
           </div>
         </div>
       </div>
@@ -149,7 +149,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
       <div className="document-frame" style={{ marginTop: '-8px' }}>
         <div className="offer-letter-title">Offer Letter Group sale Facility</div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '110px 6px 1fr', rowGap: '4px', fontSize: '8pt', marginBottom: '8px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '110px 6px 1fr', rowGap: '4px', fontSize: '7.5pt', marginBottom: '8px' }}>
           <div>1. Facility Amount</div><div>:</div><div style={{ fontStyle: 'italic', color: '#555' }}>As mentioned in the Invoice</div>
           <div>2. Rental</div><div>:</div><div style={{ fontStyle: 'italic', color: '#555' }}>As mentioned in the Invoice</div>
           <div>3. Interest Rate</div><div>:</div><div style={{ fontStyle: 'italic', color: '#555' }}>As mentioned in the Invoice</div>
@@ -175,11 +175,11 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
         <div className="legal-text" style={{ marginTop: '4px' }}>Please return the attached copy of this letter duly signed thereby indicating your understanding and acceptance of the terms and condition under which this facility is granted and of the security which is stipulated herein.</div>
         <div className="legal-text" style={{ marginTop: '4px' }}>We look forward to a mutually beneficial relationship.</div>
 
-        <div style={{ marginTop: '12px', fontSize: '8.5pt' }}>
+        <div style={{ marginTop: '12px', fontSize: '8pt' }}>
           <div>Your faithfully,<br /><strong>Singer Finance (Lanka) PLC</strong></div>
           <div style={{ marginTop: '0px' }}>Accepted the terms and conditions of the facility</div>
           <div style={{ borderTop: '1px dashed #000', marginTop: '36px', width: '60%' }}></div>
-          <div style={{ fontSize: '8.5pt', marginTop: '2px' }}>Signed by the customer</div>
+          <div style={{ fontSize: '8pt', marginTop: '2px' }}>Signed by the customer</div>
         </div>
       </div>
 
