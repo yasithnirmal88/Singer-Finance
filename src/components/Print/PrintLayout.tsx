@@ -143,7 +143,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
               SINGER Showroom<br />
               No. 91, New Galle Road, Moratuwa.<br />
               (Opposite NSB Bank)<br />
-              Tel: 0112-647856 / 0755-144000
+              Tel: 0112-647856 / 0729256836
             </div>
           </div>
 
