@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Table, Button, Card, Space, Popconfirm, Modal, Typography, Input, Upload, message } from 'antd';
+import React, { useMemo, useState } from 'react';
+import { Table, Button, Card, Space, Popconfirm, Modal, Typography, Input, Upload, Row, Col, message } from 'antd';
 import type { UploadProps } from 'antd';
 import {
   SearchOutlined,
@@ -12,6 +12,9 @@ import {
   DownloadOutlined,
   InboxOutlined,
   ExclamationCircleFilled,
+  PayCircleOutlined,
+  RiseOutlined,
+  FileTextOutlined,
 } from '@ant-design/icons';
 import { useSales } from '../../hooks/useSales';
 import type { Sale, SaleItem } from '../../types';
@@ -39,6 +42,9 @@ const SALE_SHEET_HEADERS = [
 ] as const;
 
 const normalizeKey = (key: string) => key.toLowerCase().replace(/\s+/g, '');
+
+const formatAmount = (value: number) =>
+  `Rs. ${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const findColumn = (keys: string[], aliases: string[]) =>
   keys.find(key => aliases.includes(normalizeKey(key)));
@@ -443,6 +449,57 @@ export const SalesHistoryPage: React.FC = () => {
     s.institution.toLowerCase().includes(searchText.toLowerCase())
   );
 
+  // Totals across the whole sales history, not just the current search.
+  const salesTotals = useMemo(() => {
+    const totals = sales.reduce(
+      (acc, sale) => {
+        const itemsTotal = sale.items.reduce((sum, item) => sum + (Number(item.cashPrice) || 0), 0);
+        acc.cashPrice += sale.items.length > 0 ? itemsTotal : (Number(sale.totalCashPrice) || 0);
+        acc.rental += Number(sale.totalRentalMonthly) || 0;
+        acc.itemCount += sale.items.length;
+        return acc;
+      },
+      { cashPrice: 0, rental: 0, itemCount: 0 }
+    );
+    return {
+      cashPrice: round2(totals.cashPrice),
+      rental: round2(totals.rental),
+      itemCount: totals.itemCount,
+      invoiceCount: sales.length,
+      customerCount: new Set(sales.map(s => s.epfNumber).filter(Boolean)).size,
+    };
+  }, [sales]);
+
+  const summaryCards = [
+    {
+      key: 'cash',
+      label: 'Total Sales Value',
+      value: formatAmount(salesTotals.cashPrice),
+      hint: 'Full cash value of all items across every invoice',
+      icon: <PayCircleOutlined />,
+      valueClass: 'text-singer',
+      iconClass: 'text-singer',
+    },
+    {
+      key: 'rent',
+      label: 'Total Monthly Rental',
+      value: formatAmount(salesTotals.rental),
+      hint: 'Combined monthly rental across all invoices',
+      icon: <RiseOutlined />,
+      valueClass: 'text-emerald-600',
+      iconClass: 'text-emerald-600',
+    },
+    {
+      key: 'invoices',
+      label: 'Total Invoices',
+      value: String(salesTotals.invoiceCount),
+      hint: `${salesTotals.itemCount} items sold to ${salesTotals.customerCount} customers`,
+      icon: <FileTextOutlined />,
+      valueClass: 'text-slate-800',
+      iconClass: 'text-slate-500',
+    },
+  ];
+
   const columns = [
     {
       title: 'Invoice No',
@@ -532,6 +589,30 @@ export const SalesHistoryPage: React.FC = () => {
     <div className="space-y-6">
       {/* Print component - Hidden on screen */}
       {printSaleData && <PrintLayout saleData={printSaleData.saleData} />}
+
+      {/* Sales history totals */}
+      <Row gutter={[16, 16]} className="no-print">
+        {summaryCards.map(card => (
+          <Col xs={24} md={8} key={card.key}>
+            <div className="bg-white shadow-sm rounded-xl p-5 h-full">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <Text type="secondary" className="block text-xs font-medium">
+                    {card.label}
+                  </Text>
+                  <div className={`font-bold text-xl mt-1 break-words ${card.valueClass}`}>
+                    {card.value}
+                  </div>
+                  <Text type="secondary" className="block text-xs mt-1">
+                    {card.hint}
+                  </Text>
+                </div>
+                <span className={`text-2xl shrink-0 ${card.iconClass}`}>{card.icon}</span>
+              </div>
+            </div>
+          </Col>
+        ))}
+      </Row>
 
       <Card
         bordered={false}
