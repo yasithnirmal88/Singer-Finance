@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { Table, Button, Card, Space, Popconfirm, Modal, Typography, Input, Upload, message } from 'antd';
 import type { UploadProps } from 'antd';
 import {
@@ -20,7 +20,6 @@ import * as XLSX from 'xlsx';
 import PrintLayout from '../Print/PrintLayout';
 import EditSaleModal from './EditSaleModal';
 import { SalesSummary } from './SalesSummary';
-import type { MonthlyPoint } from './SalesSummary';
 
 const { Text } = Typography;
 
@@ -41,8 +40,6 @@ const SALE_SHEET_HEADERS = [
 ] as const;
 
 const normalizeKey = (key: string) => key.toLowerCase().replace(/\s+/g, '');
-
-const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const findColumn = (keys: string[], aliases: string[]) =>
   keys.find(key => aliases.includes(normalizeKey(key)));
@@ -447,48 +444,6 @@ export const SalesHistoryPage: React.FC = () => {
     s.institution.toLowerCase().includes(searchText.toLowerCase())
   );
 
-  // Totals across the whole sales history, not just the current search.
-  const salesTotals = useMemo(() => {
-    const totals = sales.reduce(
-      (acc, sale) => {
-        const itemsTotal = sale.items.reduce((sum, item) => sum + (Number(item.cashPrice) || 0), 0);
-        acc.cashPrice += sale.items.length > 0 ? itemsTotal : (Number(sale.totalCashPrice) || 0);
-        acc.rental += Number(sale.totalRentalMonthly) || 0;
-        acc.itemCount += sale.items.length;
-        return acc;
-      },
-      { cashPrice: 0, rental: 0, itemCount: 0 }
-    );
-    return {
-      cashPrice: round2(totals.cashPrice),
-      rental: round2(totals.rental),
-      itemCount: totals.itemCount,
-      invoiceCount: sales.length,
-      customerCount: new Set(sales.map(s => s.epfNumber).filter(Boolean)).size,
-    };
-  }, [sales]);
-
-  // Monthly cash value for the summary's mini bar chart. Same "sum the line
-  // items, fall back to the stored total" rule as the totals above, so the
-  // chart always adds up to the headline figure.
-  const monthlySales = useMemo<MonthlyPoint[]>(() => {
-    const byMonth = new Map<string, number>();
-    sales.forEach(sale => {
-      if (!sale.date) return;
-      const key = sale.date.slice(0, 7);
-      const itemsTotal = sale.items.reduce((sum, item) => sum + (Number(item.cashPrice) || 0), 0);
-      const value = sale.items.length > 0 ? itemsTotal : (Number(sale.totalCashPrice) || 0);
-      byMonth.set(key, round2((byMonth.get(key) || 0) + value));
-    });
-    return Array.from(byMonth.entries())
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .slice(-12)
-      .map(([key, value]) => {
-        const [year, month] = key.split('-');
-        return { label: `${MONTH_LABELS[Number(month) - 1] ?? ''} ${year}`, value };
-      });
-  }, [sales]);
-
   const columns = [
     {
       title: 'Invoice No',
@@ -625,15 +580,12 @@ export const SalesHistoryPage: React.FC = () => {
         />
       </Card>
 
-      {/* Sales history summary */}
+      {/* Sales history summary. Reflects the current search when one is active. */}
       <SalesSummary
+        sales={filteredSales}
+        totalCount={sales.length}
         loading={loading}
-        cashPrice={salesTotals.cashPrice}
-        rental={salesTotals.rental}
-        invoiceCount={salesTotals.invoiceCount}
-        itemCount={salesTotals.itemCount}
-        customerCount={salesTotals.customerCount}
-        monthly={monthlySales}
+        searchText={searchText}
       />
 
       {/* Restore Sales History from Excel */}

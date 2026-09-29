@@ -1,59 +1,65 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Progress, Skeleton } from 'antd';
 import {
   BarChartOutlined,
-  WalletOutlined,
+  DollarOutlined,
   CalendarOutlined,
   FileTextOutlined,
   TeamOutlined,
   InboxOutlined,
 } from '@ant-design/icons';
-
-/** One bucket of sales value, used to draw the mini bar chart on the headline card. */
-export interface MonthlyPoint {
-  label: string;
-  value: number;
-}
+import { TERM_OPTIONS } from '../../constants';
+import type { Sale } from '../../types';
 
 export interface SalesSummaryProps {
-  /** True while sales are still being fetched; renders the skeleton instead of the KPIs. */
+  /** The rows the figures describe. The parent passes the filtered rows while a search is active. */
+  sales: Sale[];
+  /** Total rows in the collection, used to describe the filter in the caption. */
+  totalCount: number;
   loading?: boolean;
-  /** Full cash value of every item billed, across all invoices. */
-  cashPrice: number;
-  /** Combined monthly rental across all invoices. */
-  rental: number;
-  invoiceCount: number;
-  itemCount: number;
-  customerCount: number;
-  /** Optional monthly series for the headline mini chart. Omit to hide the chart. */
-  monthly?: MonthlyPoint[];
+  /** The active search text, shown in the caption when a filter is applied. */
+  searchText?: string;
 }
 
-const formatAmount = (value: number) =>
-  `Rs. ${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+/** Rs. 2,629,305.35 - always two decimals, always grouped. */
+const formatMoney = (value: number) => {
+  const safe = Number.isFinite(value) ? value : 0;
+  return `Rs. ${safe.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+};
+
+/** 1,234 - grouped, for counts. */
+const formatCount = (value: number) => value.toLocaleString('en-US');
+
+/** Sum of the line items, falling back to the stored total for itemless invoices. */
+const cashValueOf = (sale: Sale) => {
+  if (!sale.items || sale.items.length === 0) return Number(sale.totalCashPrice) || 0;
+  return sale.items.reduce((sum, item) => sum + (Number(item.cashPrice) || 0), 0);
+};
 
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' &&
   typeof window.matchMedia === 'function' &&
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const shouldAnimate = (animate: boolean) => animate && !prefersReducedMotion();
-
 /**
- * Counts up to `target` on mount, and animates from the old figure to the new
- * one when `target` changes (an invoice added, edited or deleted).
+ * Counts up to `target` on mount, and animates from the old figure to the new one
+ * when `target` changes.
  *
  * Two safeguards, because the real figure must never depend on a frame arriving:
- * the true value is rendered from the very first paint and the animation only
- * adjusts what is displayed afterwards, and a timeout settles on the exact value
- * in case requestAnimationFrame is throttled (background tabs) or unavailable.
- * Nothing is set synchronously inside the effect.
+ * the true value renders from the first paint and the animation only adjusts what
+ * is displayed afterwards, and a timeout settles on the exact value in case
+ * requestAnimationFrame is throttled (background tabs) or unavailable. Nothing is
+ * set synchronously inside the effect.
  */
 const useCountUp = (target: number, animate: boolean) => {
   const [value, setValue] = useState(target);
   const previous = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!shouldAnimate(animate)) return;
+    if (!animate || prefersReducedMotion()) return;
 
     const from = previous.current === null ? 0 : previous.current;
     previous.current = target;
@@ -124,42 +130,17 @@ interface StatConfig {
   icon: React.ReactNode;
   /** Tinted background + foreground for the icon badge. */
   badge: string;
-  /** Solid colour for the mini chart bars. */
-  bar: string;
-  /** Small pill under the value, used instead of a plain caption. */
-  pill?: { text: string; className: string };
-  caption?: string;
-  /** Monthly series, only the headline card draws a chart. */
-  monthly?: MonthlyPoint[];
+  helper: string;
+  /** Optional extra line shown under the value. */
+  footer?: React.ReactNode;
 }
 
-const MiniBars: React.FC<{ points: MonthlyPoint[]; bar: string }> = ({ points, bar }) => {
-  const max = Math.max(...points.map(p => p.value), 0);
-  if (max <= 0) return null;
-
-  return (
-    <div className="mt-4">
-      <div className="flex h-8 items-end gap-[3px]">
-        {points.map(point => (
-          <div
-            key={point.label}
-            title={`${point.label}: ${formatAmount(point.value)}`}
-            className={`flex-1 rounded-t-[2px] ${bar} opacity-80`}
-            style={{ height: `${Math.max(6, (point.value / max) * 100)}%` }}
-          />
-        ))}
-      </div>
-      <div className="mt-1.5 flex justify-between text-[10px] font-medium text-slate-400">
-        <span>{points[0].label}</span>
-        <span>{points[points.length - 1].label}</span>
-      </div>
-    </div>
-  );
-};
-
 const StatCard: React.FC<{ stat: StatConfig; animate: boolean }> = ({ stat, animate }) => (
-  <div className="group flex flex-col rounded-xl border border-slate-100 bg-white p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-200 hover:shadow-md">
-    <span className={`inline-flex h-10 w-10 items-center justify-center rounded-xl text-lg ${stat.badge}`}>
+  <div className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow duration-200 hover:shadow-md">
+    <span
+      className={`inline-flex h-10 w-10 items-center justify-center rounded-xl text-lg ${stat.badge}`}
+      aria-hidden="true"
+    >
       {stat.icon}
     </span>
 
@@ -169,101 +150,111 @@ const StatCard: React.FC<{ stat: StatConfig; animate: boolean }> = ({ stat, anim
       value={stat.value}
       format={stat.format}
       animate={animate}
-      className="mt-1 text-3xl font-bold leading-tight text-slate-800 break-words"
+      className="mt-1 text-3xl font-bold leading-tight text-slate-900 [font-variant-numeric:tabular-nums] break-words"
     />
 
-    {stat.pill ? (
-      <span className={`mt-2 self-start rounded-full px-2 py-0.5 text-[11px] font-medium ${stat.pill.className}`}>
-        {stat.pill.text}
-      </span>
-    ) : null}
+    {stat.footer ? <div className="mt-1 text-xs text-slate-500">{stat.footer}</div> : null}
 
-    {stat.caption ? <div className="mt-2 text-[11px] text-slate-400">{stat.caption}</div> : null}
-
-    {stat.monthly?.length ? <MiniBars points={stat.monthly} bar={stat.bar} /> : null}
+    <div className="mt-auto pt-2 text-[11px] text-slate-400">{stat.helper}</div>
   </div>
 );
 
 const SkeletonCards: React.FC = () => (
   <>
     {[0, 1, 2, 3].map(i => (
-      <div key={i} className="rounded-xl border border-slate-100 bg-white p-4">
-        <div className="h-10 w-10 animate-pulse rounded-xl bg-slate-100" />
-        <div className="mt-3 h-3 w-20 animate-pulse rounded bg-slate-100" />
-        <div className="mt-2 h-7 w-24 animate-pulse rounded bg-slate-100" />
-        <div className="mt-2 h-3 w-16 animate-pulse rounded bg-slate-100" />
+      <div key={i} className="rounded-xl border border-slate-200 bg-white p-4">
+        <Skeleton active paragraph={{ rows: 0 }} avatar={{ shape: 'square', size: 40 }} />
+        <Skeleton active paragraph={{ rows: 2 }} title={false} className="mt-3" />
       </div>
     ))}
   </>
 );
 
 export const SalesSummary: React.FC<SalesSummaryProps> = ({
+  sales,
+  totalCount,
   loading = false,
-  cashPrice,
-  rental,
-  invoiceCount,
-  itemCount,
-  customerCount,
-  monthly,
+  searchText = '',
 }) => {
-  const isEmpty = !loading && invoiceCount === 0;
+  const isEmpty = !loading && sales.length === 0;
+
+  const cashPrice = sales.reduce((sum, sale) => sum + cashValueOf(sale), 0);
+  const rental = sales.reduce((sum, sale) => sum + (Number(sale.totalRentalMonthly) || 0), 0);
+  const invoiceCount = sales.length;
+  const itemCount = sales.reduce((sum, sale) => sum + (sale.items?.length ?? 0), 0);
+  const customerCount = new Set(sales.map(s => s.epfNumber).filter(Boolean)).size;
+  const averageInvoice = invoiceCount > 0 ? cashPrice / invoiceCount : 0;
+
+  // Invoice count per term, so staff can see which plans the book is made of.
+  const termCounts = TERM_OPTIONS.map(option => ({
+    term: option.value,
+    label: `${option.value} mo`,
+    count: sales.filter(sale => Number(sale.overallTerm) === option.value).length,
+  }));
+  const maxTermCount = Math.max(...termCounts.map(t => t.count), 0);
 
   const stats: StatConfig[] = [
     {
       key: 'cash',
       label: 'Total Sales Value',
       value: cashPrice,
-      format: formatAmount,
-      icon: <WalletOutlined />,
-      badge: 'bg-blue-50 text-blue-600',
-      bar: 'bg-blue-500',
-      caption: 'Full cash value of every item billed',
-      monthly,
+      format: formatMoney,
+      icon: <DollarOutlined />,
+      // Primary accent: the Singer brand red.
+      badge: 'bg-red-50 text-singer',
+      helper: 'Full cash value of every item billed',
+      footer: (
+        <>
+          Avg. invoice value:{' '}
+          <span className="font-semibold text-slate-700">{formatMoney(averageInvoice)}</span>
+        </>
+      ),
     },
     {
       key: 'rental',
       label: 'Total Monthly Rental',
       value: rental,
-      format: formatAmount,
+      format: formatMoney,
       icon: <CalendarOutlined />,
       badge: 'bg-emerald-50 text-emerald-600',
-      bar: 'bg-emerald-500',
-      caption: 'Combined across all invoices',
+      helper: 'Combined across all invoices',
     },
     {
       key: 'invoices',
       label: 'Total Invoices',
       value: invoiceCount,
-      format: v => String(Math.round(v)),
+      format: formatCount,
       icon: <FileTextOutlined />,
-      badge: 'bg-violet-50 text-violet-600',
-      bar: 'bg-violet-500',
-      pill: {
-        text: `${itemCount} item${itemCount === 1 ? '' : 's'} sold`,
-        className: 'bg-violet-50 text-violet-600',
-      },
+      badge: 'bg-blue-50 text-blue-600',
+      helper: `${formatCount(itemCount)} item${itemCount === 1 ? '' : 's'} sold`,
     },
     {
       key: 'customers',
       label: 'Total Customers',
       value: customerCount,
-      format: v => String(Math.round(v)),
+      format: formatCount,
       icon: <TeamOutlined />,
       badge: 'bg-amber-50 text-amber-600',
-      bar: 'bg-amber-500',
-      pill: {
-        text: 'Unique EPF numbers',
-        className: 'bg-amber-50 text-amber-600',
-      },
+      helper: 'Unique EPF numbers',
     },
   ];
 
+  const isFiltered = searchText.trim().length > 0;
+  const caption = isFiltered
+    ? `${formatCount(invoiceCount)} of ${formatCount(totalCount)} invoices match "${searchText.trim()}"`
+    : `All ${formatCount(invoiceCount)} invoice${invoiceCount === 1 ? '' : 's'}`;
+
   return (
-    <section className="no-print rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-      <header className="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <BarChartOutlined className="text-lg text-singer" />
-        <h2 className="text-base font-semibold text-slate-800">Sales Summary</h2>
-        <span className="text-xs text-slate-400">Overview of all invoices</span>
+    <section
+      className="no-print box-border rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+      aria-label="Sales summary"
+    >
+      <header className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <span className="inline-flex items-center gap-2">
+          <BarChartOutlined className="text-singer" aria-hidden="true" />
+          <h2 className="m-0 text-base font-semibold text-slate-900">Sales summary</h2>
+        </span>
+        <span className="text-xs text-slate-400">{caption}</span>
       </header>
 
       {loading ? (
@@ -271,11 +262,13 @@ export const SalesSummary: React.FC<SalesSummaryProps> = ({
           <SkeletonCards />
         </div>
       ) : isEmpty ? (
-        <div className="mt-5 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-200 bg-slate-50/60 py-12 text-center">
-          <InboxOutlined className="text-2xl text-slate-300" />
+        <div className="mt-5 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 py-12 text-center">
+          <InboxOutlined className="text-2xl text-slate-300" aria-hidden="true" />
           <div className="text-sm font-semibold text-slate-600">No invoices yet</div>
           <div className="text-xs text-slate-400">
-            Totals will appear here once your first invoice is created.
+            {isFiltered
+              ? 'No invoices match the current search.'
+              : 'Totals will appear here once the first invoice is created.'}
           </div>
         </div>
       ) : (
@@ -286,16 +279,32 @@ export const SalesSummary: React.FC<SalesSummaryProps> = ({
             ))}
           </div>
 
-          <footer className="mt-5 flex flex-wrap gap-x-8 gap-y-1 border-t border-slate-100 pt-4 text-xs text-slate-500">
-            <span>
-              Avg. invoice value:{' '}
-              <span className="font-semibold text-slate-700">{formatAmount(cashPrice / invoiceCount)}</span>
-            </span>
-            <span>
-              Avg. monthly rental per invoice:{' '}
-              <span className="font-semibold text-slate-700">{formatAmount(rental / invoiceCount)}</span>
-            </span>
-          </footer>
+          {maxTermCount > 0 ? (
+            <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                Term breakdown
+              </div>
+              <div className="mt-3 grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2 xl:grid-cols-4">
+                {termCounts.map(entry => (
+                  <div key={entry.term}>
+                    <div className="flex items-baseline justify-between gap-2 text-xs">
+                      <span className="font-medium text-slate-600">{entry.label}</span>
+                      <span className="font-semibold text-slate-800 [font-variant-numeric:tabular-nums]">
+                        {formatCount(entry.count)}
+                      </span>
+                    </div>
+                    <Progress
+                      percent={maxTermCount > 0 ? (entry.count / maxTermCount) * 100 : 0}
+                      showInfo={false}
+                      size="small"
+                      strokeColor={entry.count > 0 ? '#d6073b' : '#cbd5e1'}
+                      trailColor="#e2e8f0"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </>
       )}
     </section>
@@ -303,3 +312,4 @@ export const SalesSummary: React.FC<SalesSummaryProps> = ({
 };
 
 export default SalesSummary;
+
