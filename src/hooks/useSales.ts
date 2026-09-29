@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { collection, doc, setDoc, deleteDoc, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { collection, doc, setDoc, deleteDoc, onSnapshot, query, writeBatch, getDocs, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 import type { Sale } from '../types';
@@ -73,6 +73,82 @@ export const useSales = () => {
     });
   };
 
+  const updateSale = async (sale: Omit<Sale, 'createdBy'>) => {
+    if (!user) throw new Error('User not authenticated');
+
+    const docRef = doc(db, 'users', user.uid, 'sales', sale.invoiceNo);
+
+    const completeSale: Sale = {
+      ...sale,
+      createdBy: user.uid,
+    };
+
+    await setDoc(docRef, completeSale);
+
+    setSales((prev) => {
+      const existingId = prev.find(s => s.invoiceNo === completeSale.invoiceNo)?.id;
+      const merged: Sale = { ...completeSale, id: existingId ?? completeSale.invoiceNo };
+      const updated = [merged, ...prev.filter(s => s.invoiceNo !== merged.invoiceNo)];
+      updated.sort((a, b) => b.invoiceNo.localeCompare(a.invoiceNo));
+      persistSales(updated);
+      return updated;
+    });
+  };
+
+  const bulkAddSales = async (saleList: Sale[]) => {
+    if (!user) throw new Error('User not authenticated');
+
+    const chunkSize = 500;
+    for (let i = 0; i < saleList.length; i += chunkSize) {
+      const chunk = saleList.slice(i, i + chunkSize);
+      const batch = writeBatch(db);
+
+      chunk.forEach((sale) => {
+        batch.set(doc(db, 'users', user.uid, 'sales', sale.invoiceNo), { ...sale, createdBy: user.uid });
+      });
+
+      await batch.commit();
+    }
+
+    setSales((prev) => {
+      const map = new Map(prev.map(s => [s.invoiceNo, s]));
+      saleList.forEach(sale => {
+        map.set(sale.invoiceNo, {
+          ...sale,
+          createdBy: user.uid,
+          id: map.get(sale.invoiceNo)?.id ?? sale.invoiceNo,
+        });
+      });
+      const updated = Array.from(map.values());
+      updated.sort((a, b) => b.invoiceNo.localeCompare(a.invoiceNo));
+      persistSales(updated);
+      return updated;
+    });
+  };
+
+  const clearAllSales = async () => {
+    if (!user) throw new Error('User not authenticated');
+
+    const salesRef = collection(db, 'users', user.uid, 'sales');
+    const snapshot = await getDocs(salesRef);
+    const docs = snapshot.docs;
+
+    const chunkSize = 500;
+    for (let i = 0; i < docs.length; i += chunkSize) {
+      const chunk = docs.slice(i, i + chunkSize);
+      const batch = writeBatch(db);
+
+      chunk.forEach((docSnap) => {
+        batch.delete(docSnap.ref);
+      });
+
+      await batch.commit();
+    }
+
+    setSales([]);
+    localStorage.removeItem('sf_sales');
+  };
+
   const deleteSale = async (id: string) => {
     if (!user) throw new Error('User not authenticated');
     const docRef = doc(db, 'users', user.uid, 'sales', id);
@@ -104,5 +180,5 @@ export const useSales = () => {
     return `${prefix}${String(nextNum).padStart(4, '0')}`;
   };
 
-  return { sales, loading, error, addSale, deleteSale, generateNextInvoiceNo };
+  return { sales, loading, error, addSale, updateSale, bulkAddSales, clearAllSales, deleteSale, generateNextInvoiceNo };
 };

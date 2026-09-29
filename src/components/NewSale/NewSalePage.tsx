@@ -5,14 +5,8 @@ import { useCustomers } from '../../hooks/useCustomers';
 import { useItems } from '../../hooks/useItems';
 import { useSales } from '../../hooks/useSales';
 import type { Customer, SaleItem } from '../../types';
+import { TERM_OPTIONS, TERM_RATES } from '../../constants';
 import PrintLayout from '../Print/PrintLayout';
-
-const TERM_RATES: Record<number, number> = {
-  6: 0.18562,
-  12: 0.10146,
-  18: 0.07374,
-  24: 0.06011,
-};
 
 export const NewSalePage: React.FC = () => {
   const { customers, searchCustomers } = useCustomers();
@@ -393,12 +387,7 @@ export const NewSalePage: React.FC = () => {
                   placeholder="Select Term"
                   value={overallTerm}
                   onChange={handleOverallTermChange}
-                  options={[
-                    { value: 6, label: '6 Months' },
-                    { value: 12, label: '12 Months' },
-                    { value: 18, label: '18 Months' },
-                    { value: 24, label: '24 Months' },
-                  ]}
+                  options={TERM_OPTIONS}
                 />
               </Form.Item>
             </Col>
