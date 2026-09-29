@@ -1,16 +1,20 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { collection, doc, setDoc, deleteDoc, onSnapshot, query, writeBatch, getDocs, orderBy, startAt, endAt, limit } from 'firebase/firestore';
 import { db } from '../firebase';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/useAuth';
 import type { Customer } from '../types';
+
+/** Stable identity for the signed-out case, so consumers see a consistent empty array. */
+const NO_CUSTOMERS: Customer[] = [];
 
 export const useCustomers = () => {
   const { user } = useAuth();
-  const [customers, setCustomers] = useState<Customer[]>(() => {
+  const isSignedIn = Boolean(user);
+  const [customersState, setCustomersState] = useState<Customer[]>(() => {
     const local = localStorage.getItem('sf_customers');
-    return local ? JSON.parse(local) : [];
+    return local ? (JSON.parse(local) as Customer[]) : [];
   });
-  const [loading, setLoading] = useState(true);
+  const [loadingState, setLoadingState] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const localTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -22,11 +26,10 @@ export const useCustomers = () => {
   }, []);
 
   useEffect(() => {
-    if (!user) {
-      setCustomers([]);
-      setLoading(false);
-      return;
-    }
+    // With no user there is no collection to subscribe to. The empty result and
+    // the settled loading flag are derived below rather than set here, which
+    // would cascade an extra render.
+    if (!user) return;
 
     const customersRef = collection(db, 'users', user.uid, 'customers');
     const q = query(customersRef);
@@ -40,18 +43,21 @@ export const useCustomers = () => {
         });
         list.sort((a, b) => a.customerName.localeCompare(b.customerName));
         persistCustomers(list);
-        setCustomers(list);
-        setLoading(false);
+        setCustomersState(list);
+        setLoadingState(false);
       },
       (err) => {
         console.error('Error listening to customers:', err);
         setError(err);
-        setLoading(false);
+        setLoadingState(false);
       }
     );
 
     return unsubscribe;
   }, [user, persistCustomers]);
+
+  const customers = isSignedIn ? customersState : NO_CUSTOMERS;
+  const loading = isSignedIn ? loadingState : false;
 
   const searchCustomers = useCallback(async (query_text: string): Promise<Customer[]> => {
     if (!user || !query_text || query_text.length < 2) return [];
@@ -98,7 +104,7 @@ export const useCustomers = () => {
     const docRef = doc(db, 'users', user.uid, 'customers', customer.epfNumber);
     await setDoc(docRef, customer);
 
-    setCustomers((prev) => {
+    setCustomersState((prev) => {
       const updated = [...prev.filter(c => c.epfNumber !== customer.epfNumber), customer];
       updated.sort((a, b) => a.customerName.localeCompare(b.customerName));
       persistCustomers(updated);
@@ -111,7 +117,7 @@ export const useCustomers = () => {
     const docRef = doc(db, 'users', user.uid, 'customers', epfNumber);
     await deleteDoc(docRef);
 
-    setCustomers((prev) => {
+    setCustomersState((prev) => {
       const updated = prev.filter((c) => c.epfNumber !== epfNumber);
       persistCustomers(updated);
       return updated;
@@ -134,7 +140,7 @@ export const useCustomers = () => {
       await batch.commit();
     }
 
-    setCustomers((prev) => {
+    setCustomersState((prev) => {
       const map = new Map(prev.map(c => [c.epfNumber, c]));
       customerList.forEach(c => map.set(c.epfNumber, c));
       const updated = Array.from(map.values());
@@ -163,7 +169,7 @@ export const useCustomers = () => {
       await batch.commit();
     }
 
-    setCustomers([]);
+    setCustomersState([]);
     localStorage.removeItem('sf_customers');
   };
 

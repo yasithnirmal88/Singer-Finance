@@ -1,16 +1,20 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { collection, doc, setDoc, deleteDoc, onSnapshot, query, writeBatch, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/useAuth';
 import type { Item } from '../types';
+
+/** Stable identity for the signed-out case, so consumers see a consistent empty array. */
+const NO_ITEMS: Item[] = [];
 
 export const useItems = () => {
   const { user } = useAuth();
-  const [items, setItems] = useState<Item[]>(() => {
+  const isSignedIn = Boolean(user);
+  const [itemsState, setItemsState] = useState<Item[]>(() => {
     const local = localStorage.getItem('sf_items');
-    return local ? JSON.parse(local) : [];
+    return local ? (JSON.parse(local) as Item[]) : [];
   });
-  const [loading, setLoading] = useState(true);
+  const [loadingState, setLoadingState] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const localTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -22,11 +26,10 @@ export const useItems = () => {
   }, []);
 
   useEffect(() => {
-    if (!user) {
-      setItems([]);
-      setLoading(false);
-      return;
-    }
+    // With no user there is no collection to subscribe to. The empty result and
+    // the settled loading flag are derived below rather than set here, which
+    // would cascade an extra render.
+    if (!user) return;
 
     const itemsRef = collection(db, 'users', user.uid, 'items');
     const q = query(itemsRef);
@@ -40,18 +43,21 @@ export const useItems = () => {
         });
         list.sort((a, b) => a.modelNumber.localeCompare(b.modelNumber));
         persistItems(list);
-        setItems(list);
-        setLoading(false);
+        setItemsState(list);
+        setLoadingState(false);
       },
       (err) => {
         console.error('Error listening to items:', err);
         setError(err);
-        setLoading(false);
+        setLoadingState(false);
       }
     );
 
     return unsubscribe;
   }, [user, persistItems]);
+
+  const items = isSignedIn ? itemsState : NO_ITEMS;
+  const loading = isSignedIn ? loadingState : false;
 
   const addItem = async (item: Item) => {
     if (!user) throw new Error('User not authenticated');
@@ -59,7 +65,7 @@ export const useItems = () => {
     const docRef = doc(db, 'users', user.uid, 'items', normalizedItem.modelNumber);
     await setDoc(docRef, normalizedItem);
 
-    setItems((prev) => {
+    setItemsState((prev) => {
       const updated = [...prev.filter(it => it.modelNumber !== normalizedItem.modelNumber), normalizedItem];
       updated.sort((a, b) => a.modelNumber.localeCompare(b.modelNumber));
       persistItems(updated);
@@ -73,7 +79,7 @@ export const useItems = () => {
     const docRef = doc(db, 'users', user.uid, 'items', upperModel);
     await deleteDoc(docRef);
 
-    setItems((prev) => {
+    setItemsState((prev) => {
       const updated = prev.filter((it) => it.modelNumber !== upperModel);
       persistItems(updated);
       return updated;
@@ -96,7 +102,7 @@ export const useItems = () => {
       await batch.commit();
     }
 
-    setItems((prev) => {
+    setItemsState((prev) => {
       const map = new Map(prev.map(it => [it.modelNumber, it]));
       itemList.forEach(item => {
         const normalized = { ...item, modelNumber: item.modelNumber.toUpperCase() };
@@ -128,7 +134,7 @@ export const useItems = () => {
       await batch.commit();
     }
 
-    setItems([]);
+    setItemsState([]);
     localStorage.removeItem('sf_items');
   };
 

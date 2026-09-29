@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthProvider';
+import { useAuth } from './contexts/useAuth';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { Spin } from 'antd';

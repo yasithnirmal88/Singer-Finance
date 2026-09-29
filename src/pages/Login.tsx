@@ -1,20 +1,25 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, Card, Typography, Divider, message } from 'antd';
 import { UserOutlined, LockOutlined, GoogleOutlined, LoginOutlined } from '@ant-design/icons';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/useAuth';
+import { getErrorCode, getErrorMessage } from '../utils/errors';
+import type { LoginFormValues } from '../types';
 
 const { Title, Text } = Typography;
+
+/** The only account permitted to use the portal. */
+const AUTHORIZED_EMAIL = 'surangi19831011@gmail.com';
 
 export const Login: React.FC = () => {
   const { login, register, loginWithGoogle, logout } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<LoginFormValues>();
 
-  const handleEmailAuth = async (values: any) => {
+  const handleEmailAuth = async (values: LoginFormValues) => {
     const email = values.email.trim().toLowerCase();
     const password = values.password;
 
-    if (email !== 'surangi19831011@gmail.com' || password !== 'yasi2003') {
+    if (email !== AUTHORIZED_EMAIL || password !== 'yasi2003') {
       message.error('Invalid operator credentials. Access Denied.');
       return;
     }
@@ -24,18 +29,19 @@ export const Login: React.FC = () => {
       // Attempt Firebase Sign-In
       await login(email, password);
       message.success('Logged in successfully!');
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Auto-provisioning: If account doesn't exist in Firebase yet, create it.
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+      const code = getErrorCode(error);
+      if (code === 'auth/user-not-found' || code === 'auth/invalid-credential') {
         try {
           await register(email, password);
           message.success('Operator account initialized and logged in!');
-        } catch (regError: any) {
-          console.error(regError);
+        } catch (regError: unknown) {
+          console.error(getErrorMessage(regError));
           message.error('Authentication configuration failed. Please contact support.');
         }
       } else {
-        console.error(error);
+        console.error(getErrorMessage(error));
         message.error('Authentication failed. Please check connection.');
       }
     } finally {
@@ -46,16 +52,16 @@ export const Login: React.FC = () => {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-      const result = await loginWithGoogle();
-      const userEmail = result.user?.email?.toLowerCase();
-      if (userEmail !== 'surangi19831011@gmail.com') {
+      const result = (await loginWithGoogle()) as { user?: { email?: string | null } };
+      const userEmail = result?.user?.email?.toLowerCase();
+      if (userEmail !== AUTHORIZED_EMAIL) {
         await logout();
-        message.error('Access Denied. Only surangi19831011@gmail.com is authorized.');
+        message.error(`Access Denied. Only ${AUTHORIZED_EMAIL} is authorized.`);
       } else {
         message.success('Logged in with Google successfully!');
       }
-    } catch (error: any) {
-      console.error(error);
+    } catch (error: unknown) {
+      console.error(getErrorMessage(error));
       message.error('Google Sign-In failed.');
     } finally {
       setLoading(false);

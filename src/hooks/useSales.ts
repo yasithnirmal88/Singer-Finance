@@ -1,16 +1,20 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { collection, doc, setDoc, deleteDoc, onSnapshot, query, writeBatch, getDocs, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
-import { useAuth } from '../contexts/AuthContext';
-import type { Sale } from '../types';
+import { useAuth } from '../contexts/useAuth';
+import type { Sale, SaleWithId } from '../types';
+
+/** Stable identity for the signed-out case, so consumers see a consistent empty array. */
+const NO_SALES: Sale[] = [];
 
 export const useSales = () => {
   const { user } = useAuth();
-  const [sales, setSales] = useState<Sale[]>(() => {
+  const isSignedIn = Boolean(user);
+  const [salesState, setSalesState] = useState<Sale[]>(() => {
     const local = localStorage.getItem('sf_sales');
-    return local ? JSON.parse(local) : [];
+    return local ? (JSON.parse(local) as Sale[]) : [];
   });
-  const [loading, setLoading] = useState(true);
+  const [loadingState, setLoadingState] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const localTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -22,11 +26,10 @@ export const useSales = () => {
   }, []);
 
   useEffect(() => {
-    if (!user) {
-      setSales([]);
-      setLoading(false);
-      return;
-    }
+    // With no user there is no collection to subscribe to. The empty result and
+    // the settled loading flag are derived below rather than set here, which
+    // would cascade an extra render.
+    if (!user) return;
 
     const salesRef = collection(db, 'users', user.uid, 'sales');
     const q = query(salesRef, orderBy('invoiceNo', 'desc'));
@@ -36,21 +39,24 @@ export const useSales = () => {
       (snapshot) => {
         const list: Sale[] = [];
         snapshot.forEach((doc) => {
-          list.push({ id: doc.id, ...doc.data() } as Sale);
+          list.push({ id: doc.id, ...doc.data() } as SaleWithId);
         });
         persistSales(list);
-        setSales(list);
-        setLoading(false);
+        setSalesState(list);
+        setLoadingState(false);
       },
       (err) => {
         console.error('Error listening to sales:', err);
         setError(err);
-        setLoading(false);
+        setLoadingState(false);
       }
     );
 
     return unsubscribe;
   }, [user, persistSales]);
+
+  const sales = isSignedIn ? salesState : NO_SALES;
+  const loading = isSignedIn ? loadingState : false;
 
   const addSale = async (sale: Omit<Sale, 'createdBy'>) => {
     if (!user) throw new Error('User not authenticated');
@@ -65,7 +71,7 @@ export const useSales = () => {
     
     await setDoc(docRef, completeSale);
 
-    setSales((prev) => {
+    setSalesState((prev) => {
       const updated = [completeSale, ...prev.filter(s => s.invoiceNo !== completeSale.invoiceNo)];
       updated.sort((a, b) => b.invoiceNo.localeCompare(a.invoiceNo));
       persistSales(updated);
@@ -85,7 +91,7 @@ export const useSales = () => {
 
     await setDoc(docRef, completeSale);
 
-    setSales((prev) => {
+    setSalesState((prev) => {
       const existingId = prev.find(s => s.invoiceNo === completeSale.invoiceNo)?.id;
       const merged: Sale = { ...completeSale, id: existingId ?? completeSale.invoiceNo };
       const updated = [merged, ...prev.filter(s => s.invoiceNo !== merged.invoiceNo)];
@@ -110,7 +116,7 @@ export const useSales = () => {
       await batch.commit();
     }
 
-    setSales((prev) => {
+    setSalesState((prev) => {
       const map = new Map(prev.map(s => [s.invoiceNo, s]));
       saleList.forEach(sale => {
         map.set(sale.invoiceNo, {
@@ -145,7 +151,7 @@ export const useSales = () => {
       await batch.commit();
     }
 
-    setSales([]);
+    setSalesState([]);
     localStorage.removeItem('sf_sales');
   };
 
@@ -154,7 +160,7 @@ export const useSales = () => {
     const docRef = doc(db, 'users', user.uid, 'sales', id);
     await deleteDoc(docRef);
 
-    setSales((prev) => {
+    setSalesState((prev) => {
       const updated = prev.filter((s) => s.invoiceNo !== id && s.id !== id);
       persistSales(updated);
       return updated;

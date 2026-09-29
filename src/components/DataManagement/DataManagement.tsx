@@ -10,7 +10,7 @@ import {
 } from '@ant-design/icons';
 import { useCustomers } from '../../hooks/useCustomers';
 import { useItems } from '../../hooks/useItems';
-import type { Customer, Item } from '../../types';
+import type { Customer, ExcelRow, Item } from '../../types';
 import * as XLSX from 'xlsx';
 
 const { Text, Paragraph } = Typography;
@@ -142,7 +142,7 @@ export const DataManagement: React.FC = () => {
         const workbook = XLSX.read(data, { type: 'binary' });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet) as Record<string, any>[];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet) as ExcelRow[];
         
         if (jsonData.length === 0) {
           message.error('Uploaded Excel file is empty.');
@@ -201,7 +201,7 @@ export const DataManagement: React.FC = () => {
         const workbook = XLSX.read(data, { type: 'binary' });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet) as Record<string, any>[];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet) as ExcelRow[];
         
         if (jsonData.length === 0) {
           message.error('Uploaded Excel file is empty.');

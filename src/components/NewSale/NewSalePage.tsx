@@ -7,6 +7,13 @@ import { useSales } from '../../hooks/useSales';
 import type { Customer, SaleItem } from '../../types';
 import { TERM_OPTIONS, TERM_RATES } from '../../constants';
 import PrintLayout from '../Print/PrintLayout';
+import type { PrintSaleData } from '../Print/PrintLayout';
+
+/** Value of a single editable grid cell. */
+type RowValue = string | number | null;
+
+/** Today's date as YYYY-MM-DD, the format the date input and the stored record use. */
+const todayISO = () => new Date().toISOString().split('T')[0];
 
 export const NewSalePage: React.FC = () => {
   const { customers, searchCustomers } = useCustomers();
@@ -15,8 +22,12 @@ export const NewSalePage: React.FC = () => {
 
   const [form] = Form.useForm();
   
-  const [invoiceNo, setInvoiceNo] = useState('');
-  const [date, setDate] = useState('');
+  // The invoice number and date are initialised straight from the sales list
+  // rather than mirrored into state by an effect, so the form never renders an
+  // empty or stale number on first paint. handleClearForm still refreshes them
+  // after a save.
+  const [invoiceNo, setInvoiceNo] = useState(() => generateNextInvoiceNo());
+  const [date, setDate] = useState(() => todayISO());
   const [epfNumber, setEpfNumber] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [institution, setInstitution] = useState('');
@@ -45,14 +56,10 @@ export const NewSalePage: React.FC = () => {
   const [rows, setRows] = useState<RowState[]>(initialRows());
   const [overallTerm, setOverallTerm] = useState<number | undefined>(undefined);
   const [interestRate, setInterestRate] = useState<number>(0);
-  const [printSaleData, setPrintSaleData] = useState<any>(null);
+  const [printSaleData, setPrintSaleData] = useState<PrintSaleData | null>(null);
 
-  useEffect(() => {
-    setInvoiceNo(generateNextInvoiceNo());
-    const today = new Date().toISOString().split('T')[0];
-    setDate(today);
-  }, [customers, generateNextInvoiceNo]);
-
+  // Printing is a browser side effect: wait until the hidden invoice is in the
+  // DOM, print, then drop it again on afterprint.
   useEffect(() => {
     if (printSaleData) {
       const handleAfterPrint = () => setPrintSaleData(null);
@@ -101,7 +108,7 @@ export const NewSalePage: React.FC = () => {
     }
   };
 
-  const handleRowChange = (rowIndex: number, field: keyof RowState, value: any) => {
+  const handleRowChange = (rowIndex: number, field: keyof RowState, value: RowValue) => {
     const updatedRows = [...rows];
     updatedRows[rowIndex] = {
       ...updatedRows[rowIndex],

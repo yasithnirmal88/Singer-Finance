@@ -2,8 +2,18 @@ import React, { useState } from 'react';
 import { Form, Input, InputNumber, Button, Card, Table, Space, Popconfirm, Modal, Row, Col, message, Upload, Divider } from 'antd';
 import { PlusOutlined, DeleteOutlined, EditOutlined, SearchOutlined, ShoppingOutlined, UploadOutlined } from '@ant-design/icons';
 import { useItems } from '../../hooks/useItems';
-import type { Item } from '../../types';
+import type { ExcelRow, Item } from '../../types';
 import * as XLSX from 'xlsx';
+
+/**
+ * Form shape for the item forms. The numeric cells can arrive as a number or as
+ * the raw string still being typed, so they are widened here and coerced to a
+ * number when the record is built.
+ */
+type ItemFormValues = Omit<Item, 'cashPrice' | 'rental'> & {
+  cashPrice: number | string | null;
+  rental: number | string | null;
+};
 
 export const ItemsPage: React.FC = () => {
   const { items, loading, addItem, deleteItem, bulkAddItems, clearAllItems } = useItems();
@@ -12,10 +22,10 @@ export const ItemsPage: React.FC = () => {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
 
-  const [addForm] = Form.useForm();
-  const [editForm] = Form.useForm();
+  const [addForm] = Form.useForm<ItemFormValues>();
+  const [editForm] = Form.useForm<ItemFormValues>();
 
-  const handleAddItem = async (values: any) => {
+  const handleAddItem = async (values: ItemFormValues) => {
     try {
       const exists = items.some(it => it.modelNumber.toLowerCase() === values.modelNumber.trim().toLowerCase());
       if (exists) {
@@ -89,7 +99,7 @@ export const ItemsPage: React.FC = () => {
         const workbook = XLSX.read(data, { type: 'binary' });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet) as Record<string, any>[];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet) as ExcelRow[];
 
         if (jsonData.length === 0) {
           message.error('Uploaded Excel file is empty.');
@@ -184,7 +194,7 @@ export const ItemsPage: React.FC = () => {
     {
       title: 'Actions',
       key: 'actions',
-      render: (_: any, record: Item) => (
+      render: (_: unknown, record: Item) => (
         <Space size="middle">
           <Button 
             type="text" 

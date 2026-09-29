@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Form, Input, Button, Card, Table, Space, Popconfirm, Modal, Row, Col, message, Upload, Divider } from 'antd';
 import { PlusOutlined, DeleteOutlined, EditOutlined, SearchOutlined, UserOutlined, UploadOutlined } from '@ant-design/icons';
 import { useCustomers } from '../../hooks/useCustomers';
-import type { Customer } from '../../types';
+import type { Customer, ExcelRow } from '../../types';
 import * as XLSX from 'xlsx';
 
 export const CustomersPage: React.FC = () => {
@@ -27,7 +27,7 @@ export const CustomersPage: React.FC = () => {
         const workbook = XLSX.read(data, { type: 'binary' });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet) as Record<string, any>[];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet) as ExcelRow[];
         
         if (jsonData.length === 0) {
           message.error('Uploaded Excel file is empty.');
@@ -72,7 +72,7 @@ export const CustomersPage: React.FC = () => {
     return false; // prevent default upload action
   };
 
-  const handleAddCustomer = async (values: any) => {
+  const handleAddCustomer = async (values: Customer) => {
     try {
       const exists = customers.some(c => c.epfNumber.toLowerCase() === values.epfNumber.trim().toLowerCase());
       if (exists) {
@@ -176,7 +176,7 @@ export const CustomersPage: React.FC = () => {
     {
       title: 'Actions',
       key: 'actions',
-      render: (_: any, record: Customer) => (
+      render: (_: unknown, record: Customer) => (
         <Space size="middle">
           <Button 
             type="text" 

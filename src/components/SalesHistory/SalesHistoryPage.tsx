@@ -146,7 +146,7 @@ export const SalesHistoryPage: React.FC = () => {
       return false;
     }
 
-    const exportRows: any[] = [];
+    const exportRows: Record<string, string | number>[] = [];
     sales.forEach(s => {
       s.items.forEach(item => {
         exportRows.push({
@@ -498,7 +498,7 @@ export const SalesHistoryPage: React.FC = () => {
     {
       title: 'Actions',
       key: 'actions',
-      render: (_: any, record: Sale) => (
+      render: (_: unknown, record: Sale) => (
         <Space size="middle">
           <Button
             type="text"

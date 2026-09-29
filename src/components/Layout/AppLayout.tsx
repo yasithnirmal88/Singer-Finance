@@ -11,7 +11,7 @@ import {
   MenuFoldOutlined,
   DatabaseOutlined
 } from '@ant-design/icons';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/useAuth';
 
 const { Header, Sider, Content } = Layout;
 

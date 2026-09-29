@@ -1,7 +1,7 @@
 import React from 'react';
 import './PrintLayout.css';
 
-interface SaleItem {
+export interface PrintSaleItem {
   modelNumber: string;
   itemName: string;
   cashPrice: number;
@@ -9,19 +9,27 @@ interface SaleItem {
   term: number;
 }
 
-interface PrintLayoutProps {
-  saleData: {
-    invoiceNo: string;
-    date: string;
-    epfNumber: string;
-    customerName: string;
-    institution: string;
-    contactNumber: string;
-    items: SaleItem[];
-    totalCashPrice: number;
-    totalRental: number;
-    term: number;
-  } | null;
+/**
+ * The invoice shape PrintLayout renders. It is not the same as the stored `Sale`
+ * record: printing needs the monthly rental as `totalRental` and the agreed
+ * term as `term`, and carries no NIC, interest rate or author. Exporting the type
+ * lets callers build the payload without a cast.
+ */
+export interface PrintSaleData {
+  invoiceNo: string;
+  date: string;
+  epfNumber: string;
+  customerName: string;
+  institution: string;
+  contactNumber: string;
+  items: PrintSaleItem[];
+  totalCashPrice: number;
+  totalRental: number;
+  term: number;
+}
+
+export interface PrintLayoutProps {
+  saleData: PrintSaleData | null;
 }
 
 export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
