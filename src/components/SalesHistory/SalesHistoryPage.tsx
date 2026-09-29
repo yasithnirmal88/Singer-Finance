@@ -15,6 +15,9 @@ import {
   PayCircleOutlined,
   RiseOutlined,
   FileTextOutlined,
+  BarChartOutlined,
+  ShoppingOutlined,
+  TeamOutlined,
 } from '@ant-design/icons';
 import { useSales } from '../../hooks/useSales';
 import type { Sale, SaleItem } from '../../types';
@@ -470,36 +473,6 @@ export const SalesHistoryPage: React.FC = () => {
     };
   }, [sales]);
 
-  const summaryCards = [
-    {
-      key: 'cash',
-      label: 'Total Sales Value',
-      value: formatAmount(salesTotals.cashPrice),
-      hint: 'Full cash value of all items across every invoice',
-      icon: <PayCircleOutlined />,
-      valueClass: 'text-singer',
-      iconClass: 'text-singer',
-    },
-    {
-      key: 'rent',
-      label: 'Total Monthly Rental',
-      value: formatAmount(salesTotals.rental),
-      hint: 'Combined monthly rental across all invoices',
-      icon: <RiseOutlined />,
-      valueClass: 'text-emerald-600',
-      iconClass: 'text-emerald-600',
-    },
-    {
-      key: 'invoices',
-      label: 'Total Invoices',
-      value: String(salesTotals.invoiceCount),
-      hint: `${salesTotals.itemCount} items sold to ${salesTotals.customerCount} customers`,
-      icon: <FileTextOutlined />,
-      valueClass: 'text-slate-800',
-      iconClass: 'text-slate-500',
-    },
-  ];
-
   const columns = [
     {
       title: 'Invoice No',
@@ -590,30 +563,6 @@ export const SalesHistoryPage: React.FC = () => {
       {/* Print component - Hidden on screen */}
       {printSaleData && <PrintLayout saleData={printSaleData.saleData} />}
 
-      {/* Sales history totals */}
-      <Row gutter={[16, 16]} className="no-print">
-        {summaryCards.map(card => (
-          <Col xs={24} md={8} key={card.key}>
-            <div className="bg-white shadow-sm rounded-xl p-5 h-full">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <Text type="secondary" className="block text-xs font-medium">
-                    {card.label}
-                  </Text>
-                  <div className={`font-bold text-xl mt-1 break-words ${card.valueClass}`}>
-                    {card.value}
-                  </div>
-                  <Text type="secondary" className="block text-xs mt-1">
-                    {card.hint}
-                  </Text>
-                </div>
-                <span className={`text-2xl shrink-0 ${card.iconClass}`}>{card.icon}</span>
-              </div>
-            </div>
-          </Col>
-        ))}
-      </Row>
-
       <Card
         bordered={false}
         className="shadow-sm rounded-xl no-print"
@@ -659,6 +608,85 @@ export const SalesHistoryPage: React.FC = () => {
           className="border border-slate-100 rounded-lg overflow-hidden"
         />
       </Card>
+
+      {/* Sales history summary */}
+      <div className="no-print space-y-3">
+        <div className="flex items-center gap-2">
+          <BarChartOutlined className="text-singer text-lg" />
+          <span className="font-semibold text-slate-800">Sales Summary</span>
+          <Text type="secondary" className="text-xs">
+            Across all {salesTotals.invoiceCount} invoice{salesTotals.invoiceCount === 1 ? '' : 's'} in your history
+          </Text>
+        </div>
+
+        <Row gutter={[16, 16]}>
+          <Col xs={24} lg={11}>
+            <div className="relative overflow-hidden rounded-xl h-full p-6 text-white shadow-md bg-gradient-to-br from-singer to-singer-dark">
+              <span className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10" />
+              <span className="absolute -right-4 -bottom-12 h-28 w-28 rounded-full bg-white/10" />
+              <div className="relative flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="text-sm font-medium text-white/85">Total Sales Value</div>
+                  <div className="mt-2 text-3xl font-bold tracking-tight break-words">
+                    {formatAmount(salesTotals.cashPrice)}
+                  </div>
+                  <div className="mt-2 text-xs text-white/75">
+                    Full cash value of every item billed across all invoices
+                  </div>
+                </div>
+                <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/20 text-xl">
+                  <PayCircleOutlined />
+                </span>
+              </div>
+            </div>
+          </Col>
+
+          <Col xs={24} lg={13}>
+            <Row gutter={[16, 16]}>
+              <Col xs={24} sm={12}>
+                <div className="h-full rounded-xl border border-slate-100 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+                  <div className="flex items-center gap-3">
+                    <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 text-lg">
+                      <RiseOutlined />
+                    </span>
+                    <div className="min-w-0">
+                      <div className="text-xs font-medium text-slate-500">Total Monthly Rental</div>
+                      <div className="text-lg font-bold text-slate-800 break-words">
+                        {formatAmount(salesTotals.rental)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-3 text-xs text-slate-400">
+                    Combined monthly rental from every invoice
+                  </div>
+                </div>
+              </Col>
+
+              <Col xs={24} sm={12}>
+                <div className="h-full rounded-xl border border-slate-100 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+                  <div className="flex items-center gap-3">
+                    <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600 text-lg">
+                      <FileTextOutlined />
+                    </span>
+                    <div className="min-w-0">
+                      <div className="text-xs font-medium text-slate-500">Total Invoices</div>
+                      <div className="text-lg font-bold text-slate-800">{salesTotals.invoiceCount}</div>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex items-center gap-3 text-xs text-slate-400">
+                    <span className="inline-flex items-center gap-1">
+                      <ShoppingOutlined /> {salesTotals.itemCount} item{salesTotals.itemCount === 1 ? '' : 's'} sold
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <TeamOutlined /> {salesTotals.customerCount} customer{salesTotals.customerCount === 1 ? '' : 's'}
+                    </span>
+                  </div>
+                </div>
+              </Col>
+            </Row>
+          </Col>
+        </Row>
+      </div>
 
       {/* Restore Sales History from Excel */}
       <Card
