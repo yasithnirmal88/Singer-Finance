@@ -12,7 +12,6 @@ import {
   DownloadOutlined,
   InboxOutlined,
   ExclamationCircleFilled,
-  BarChartOutlined,
 } from '@ant-design/icons';
 import { useSales } from '../../hooks/useSales';
 import type { Sale, SaleItem } from '../../types';
@@ -20,6 +19,8 @@ import { TERM_RATES, round2 } from '../../constants';
 import * as XLSX from 'xlsx';
 import PrintLayout from '../Print/PrintLayout';
 import EditSaleModal from './EditSaleModal';
+import { SalesSummary } from './SalesSummary';
+import type { MonthlyPoint } from './SalesSummary';
 
 const { Text } = Typography;
 
@@ -41,8 +42,7 @@ const SALE_SHEET_HEADERS = [
 
 const normalizeKey = (key: string) => key.toLowerCase().replace(/\s+/g, '');
 
-const formatAmount = (value: number) =>
-  `Rs. ${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const findColumn = (keys: string[], aliases: string[]) =>
   keys.find(key => aliases.includes(normalizeKey(key)));
@@ -468,6 +468,27 @@ export const SalesHistoryPage: React.FC = () => {
     };
   }, [sales]);
 
+  // Monthly cash value for the summary's mini bar chart. Same "sum the line
+  // items, fall back to the stored total" rule as the totals above, so the
+  // chart always adds up to the headline figure.
+  const monthlySales = useMemo<MonthlyPoint[]>(() => {
+    const byMonth = new Map<string, number>();
+    sales.forEach(sale => {
+      if (!sale.date) return;
+      const key = sale.date.slice(0, 7);
+      const itemsTotal = sale.items.reduce((sum, item) => sum + (Number(item.cashPrice) || 0), 0);
+      const value = sale.items.length > 0 ? itemsTotal : (Number(sale.totalCashPrice) || 0);
+      byMonth.set(key, round2((byMonth.get(key) || 0) + value));
+    });
+    return Array.from(byMonth.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .slice(-12)
+      .map(([key, value]) => {
+        const [year, month] = key.split('-');
+        return { label: `${MONTH_LABELS[Number(month) - 1] ?? ''} ${year}`, value };
+      });
+  }, [sales]);
+
   const columns = [
     {
       title: 'Invoice No',
@@ -605,46 +626,15 @@ export const SalesHistoryPage: React.FC = () => {
       </Card>
 
       {/* Sales history summary */}
-      <div className="no-print space-y-3">
-        <div className="flex items-center gap-2">
-          <BarChartOutlined className="text-singer text-lg" />
-          <span className="font-semibold text-slate-800">Sales Summary</span>
-        </div>
-
-        <div className="rounded-xl border border-slate-100 bg-white p-6 shadow-sm">
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-8 gap-y-7">
-            <div>
-              <div className="text-sm text-slate-500">Total Sales Value</div>
-              <div className="mt-1.5 text-2xl font-bold text-singer break-words">
-                {formatAmount(salesTotals.cashPrice)}
-              </div>
-              <div className="mt-1 text-xs text-slate-400">Full cash value of every item billed</div>
-            </div>
-
-            <div>
-              <div className="text-sm text-slate-500">Total Monthly Rental</div>
-              <div className="mt-1.5 text-2xl font-bold text-slate-800 break-words">
-                {formatAmount(salesTotals.rental)}
-              </div>
-              <div className="mt-1 text-xs text-slate-400">Combined across all invoices</div>
-            </div>
-
-            <div>
-              <div className="text-sm text-slate-500">Total Invoices</div>
-              <div className="mt-1.5 text-2xl font-bold text-slate-800">{salesTotals.invoiceCount}</div>
-              <div className="mt-1 text-xs text-slate-400">
-                {salesTotals.itemCount} item{salesTotals.itemCount === 1 ? '' : 's'} sold
-              </div>
-            </div>
-
-            <div>
-              <div className="text-sm text-slate-500">Total Customers</div>
-              <div className="mt-1.5 text-2xl font-bold text-slate-800">{salesTotals.customerCount}</div>
-              <div className="mt-1 text-xs text-slate-400">Unique EPF numbers</div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <SalesSummary
+        loading={loading}
+        cashPrice={salesTotals.cashPrice}
+        rental={salesTotals.rental}
+        invoiceCount={salesTotals.invoiceCount}
+        itemCount={salesTotals.itemCount}
+        customerCount={salesTotals.customerCount}
+        monthly={monthlySales}
+      />
 
       {/* Restore Sales History from Excel */}
       <Card
