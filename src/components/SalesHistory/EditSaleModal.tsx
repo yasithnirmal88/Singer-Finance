@@ -1,12 +1,15 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, Form, Input, Select, InputNumber, Button, Space, Typography, Row, Col, message } from 'antd';
 import { PlusOutlined, DeleteOutlined, SaveOutlined } from '@ant-design/icons';
 import { useItems } from '../../hooks/useItems';
 import { useSales } from '../../hooks/useSales';
+import { useCustomers } from '../../hooks/useCustomers';
 import { TERM_OPTIONS, TERM_RATES, round2 } from '../../constants';
-import type { Sale, SaleItem } from '../../types';
+import type { Customer, Sale, SaleItem } from '../../types';
 
 const { Text } = Typography;
+
+const CUSTOMER_FIELDS = ['customerName', 'institution', 'contactNumber', 'nic'] as const;
 
 const emptyRow = (term = 0): SaleItem => ({
   itemName: '',
@@ -30,6 +33,13 @@ const buildInitialValues = (sale: Sale | null) => ({
   overallTerm: sale?.overallTerm || undefined,
 });
 
+const customerFieldsFrom = (customer: Customer) => ({
+  customerName: customer.customerName || '',
+  institution: customer.institution || '',
+  contactNumber: customer.contactNumber || '',
+  nic: customer.nic || '',
+});
+
 export const EditSaleModal: React.FC<{
   open: boolean;
   sale: Sale | null;
@@ -38,11 +48,44 @@ export const EditSaleModal: React.FC<{
   const [form] = Form.useForm();
   const { items } = useItems();
   const { updateSale } = useSales();
+  const { customers, searchCustomers } = useCustomers();
 
   const [rows, setRows] = useState<SaleItem[]>(() => buildInitialRows(sale));
   const [saving, setSaving] = useState(false);
+  const [customerSearchResults, setCustomerSearchResults] = useState<Customer[]>([]);
+  const [customerSearching, setCustomerSearching] = useState(false);
+  const customerHydrated = useRef(false);
 
   const overallTerm = Form.useWatch('overallTerm', form) ?? 0;
+  const epfValue = Form.useWatch('epfNumber', form) as string | undefined;
+
+  // Auto-fill the customer details from the customer database for this invoice's EPF.
+  // Runs once, and never overwrites a field the user has already typed into.
+  useEffect(() => {
+    if (!sale || customerHydrated.current) return;
+    const customer = customers.find(c => c.epfNumber === sale.epfNumber);
+    if (!customer) return;
+    if (CUSTOMER_FIELDS.some(field => form.isFieldTouched(field))) return;
+
+    form.setFieldsValue(customerFieldsFrom(customer));
+    customerHydrated.current = true;
+  }, [customers, sale, form]);
+
+  const handleCustomerSelect = (value?: string) => {
+    if (!value) return;
+    const customer = customers.find(c => c.epfNumber === value);
+    if (customer) form.setFieldsValue(customerFieldsFrom(customer));
+  };
+
+  const handleCustomerSearch = async (value: string) => {
+    if (!value || value.length < 2) {
+      setCustomerSearchResults([]);
+      return;
+    }
+    setCustomerSearching(true);
+    setCustomerSearchResults(await searchCustomers(value));
+    setCustomerSearching(false);
+  };
 
   const totalCashPrice = useMemo(() => round2(rows.reduce((sum, r) => sum + (Number(r.cashPrice) || 0), 0)), [rows]);
   const totalRentalMonthly = useMemo(() => round2(rows.reduce((sum, r) => sum + (Number(r.rental) || 0), 0)), [rows]);
@@ -156,7 +199,7 @@ export const EditSaleModal: React.FC<{
           <span className="font-mono text-red-500 font-bold">{(sale?.invoiceNo || '').replace(/^U\s+/, '')}</span>
         </div>
       }
-open={open}
+      open={open}
       onCancel={onClose}
       width={1000}
       footer={[
@@ -195,7 +238,20 @@ open={open}
           </Col>
           <Col xs={24} md={4}>
             <Form.Item label="EPF Number" name="epfNumber" required>
-              <Input placeholder="EPF Number" />
+              <Select
+                showSearch
+                className="w-full"
+                placeholder="Search EPF Number"
+                filterOption={false}
+                onSearch={handleCustomerSearch}
+                onChange={handleCustomerSelect}
+                value={epfValue || undefined}
+                notFoundContent={customerSearching ? 'Searching...' : 'Type at least 2 characters to search'}
+                options={customerSearchResults.map(c => ({
+                  value: c.epfNumber,
+                  label: `${c.epfNumber} - ${c.customerName}`,
+                }))}
+              />
             </Form.Item>
           </Col>
           <Col xs={24} md={6}>
