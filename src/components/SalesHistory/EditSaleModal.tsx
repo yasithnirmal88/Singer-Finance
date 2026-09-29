@@ -43,7 +43,6 @@ export const EditSaleModal: React.FC<{
   const [saving, setSaving] = useState(false);
 
   const overallTerm = Form.useWatch('overallTerm', form) ?? 0;
-  const invoiceNoField = Form.useWatch('invoiceNo', form) ?? '';
 
   const totalCashPrice = useMemo(() => round2(rows.reduce((sum, r) => sum + (Number(r.cashPrice) || 0), 0)), [rows]);
   const totalRentalMonthly = useMemo(() => round2(rows.reduce((sum, r) => sum + (Number(r.rental) || 0), 0)), [rows]);
@@ -78,14 +77,14 @@ export const EditSaleModal: React.FC<{
     });
   };
 
-  const handleTermChange = (value: number) => {
-    form.setFieldsValue({ overallTerm: value });
-    const rate = TERM_RATES[value] || 0;
+  const handleTermChange = (value: number | undefined) => {
+    const term = Number(value) || 0;
+    const rate = TERM_RATES[term] || 0;
     setRows((prev) =>
       prev.map(row =>
         row.modelNumber
-          ? { ...row, term: value, rental: rate ? round2(row.cashPrice * rate) : row.rental }
-          : { ...row, term: value }
+          ? { ...row, term, rental: rate ? round2(row.cashPrice * rate) : row.rental }
+          : { ...row, term }
       )
     );
   };
@@ -157,7 +156,7 @@ export const EditSaleModal: React.FC<{
           <span className="font-mono text-red-500 font-bold">{(sale?.invoiceNo || '').replace(/^U\s+/, '')}</span>
         </div>
       }
-      open={open}
+open={open}
       onCancel={onClose}
       width={1000}
       footer={[
@@ -185,42 +184,42 @@ export const EditSaleModal: React.FC<{
       >
         <Row gutter={[16, 8]}>
           <Col xs={24} md={4}>
-            <Form.Item label="Invoice No">
-              <Input value={invoiceNoField} readOnly className="bg-slate-50 font-mono" />
+            <Form.Item label="Invoice No" name="invoiceNo">
+              <Input readOnly className="bg-slate-50 font-mono" />
             </Form.Item>
           </Col>
           <Col xs={24} md={4}>
-            <Form.Item label="Date" required>
+            <Form.Item label="Date" name="date" required>
               <Input type="date" placeholder="Select date" />
             </Form.Item>
           </Col>
           <Col xs={24} md={4}>
-            <Form.Item label="EPF Number" required>
+            <Form.Item label="EPF Number" name="epfNumber" required>
               <Input placeholder="EPF Number" />
             </Form.Item>
           </Col>
           <Col xs={24} md={6}>
-            <Form.Item label="Customer Name">
+            <Form.Item label="Customer Name" name="customerName">
               <Input placeholder="Customer Name" />
             </Form.Item>
           </Col>
           <Col xs={24} md={6}>
-            <Form.Item label="Institution">
+            <Form.Item label="Institution" name="institution">
               <Input placeholder="Institution" />
             </Form.Item>
           </Col>
           <Col xs={24} md={6}>
-            <Form.Item label="Contact Number">
+            <Form.Item label="Contact Number" name="contactNumber">
               <Input placeholder="Contact Number" />
             </Form.Item>
           </Col>
           <Col xs={24} md={5}>
-            <Form.Item label="NIC Number (ID)">
+            <Form.Item label="NIC Number (ID)" name="nic">
               <Input placeholder="NIC Number" />
             </Form.Item>
           </Col>
           <Col xs={24} md={5}>
-            <Form.Item label="Term (Months)">
+            <Form.Item label="Term (Months)" name="overallTerm">
               <Select
                 placeholder="Select Term"
                 allowClear
@@ -320,7 +319,7 @@ export const EditSaleModal: React.FC<{
 
         <Row gutter={[16, 16]} className="mt-4 pt-4 border-t border-slate-100">
           <Col xs={24} md={8}>
-            <Space direction="vertical" size={2}>
+            <Space orientation="vertical" size={2}>
               <Text type="secondary" className="text-xs">Total Cash Price</Text>
               <Text className="font-bold text-base text-slate-800">
                 Rs. {totalCashPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -328,7 +327,7 @@ export const EditSaleModal: React.FC<{
             </Space>
           </Col>
           <Col xs={24} md={8}>
-            <Space direction="vertical" size={2}>
+            <Space orientation="vertical" size={2}>
               <Text type="secondary" className="text-xs">Total Monthly Rental</Text>
               <Text className="font-bold text-base text-singer">
                 Rs. {totalRentalMonthly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -336,7 +335,7 @@ export const EditSaleModal: React.FC<{
             </Space>
           </Col>
           <Col xs={24} md={8}>
-            <Space direction="vertical" size={2}>
+            <Space orientation="vertical" size={2}>
               <Text type="secondary" className="text-xs">Items</Text>
               <Text className="font-bold text-base text-slate-800">{rows.filter(r => r.modelNumber || r.itemName).length}</Text>
             </Space>
