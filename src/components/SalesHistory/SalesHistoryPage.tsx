@@ -251,7 +251,10 @@ export const SalesHistoryPage: React.FC = () => {
           return;
         }
 
-        const keys = Object.keys(jsonData[0]);
+        const keys = Array.from(jsonData.reduce((acc, row) => {
+          Object.keys(row).forEach(key => acc.add(key));
+          return acc;
+        }, new Set<string>()));
         const invoiceKey = findColumn(keys, ['id', 'invoiceno', 'invoice', 'invoicenumber']);
         const epfKey = findColumn(keys, ['epf', 'epfnumber']);
         const nameKey = findColumn(keys, ['name', 'customername', 'fullname']);
@@ -635,15 +638,17 @@ export const SalesHistoryPage: React.FC = () => {
       </Card>
 
       {/* Edit Sale Modal */}
-      <EditSaleModal
-        key={editModalVisible ? editSale?.invoiceNo ?? 'edit' : 'closed'}
-        open={editModalVisible}
-        sale={editSale}
-        onClose={() => {
-          setEditModalVisible(false);
-          setEditSale(null);
-        }}
-      />
+      {editModalVisible && editSale && (
+        <EditSaleModal
+          key={editSale.invoiceNo}
+          open
+          sale={editSale}
+          onClose={() => {
+            setEditModalVisible(false);
+            setEditSale(null);
+          }}
+        />
+      )}
 
       {/* Sale Details Modal */}
       <Modal

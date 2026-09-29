@@ -16,18 +16,18 @@ const emptyRow = (term = 0): SaleItem => ({
   term,
 });
 
-const buildInitialRows = (sale: Sale): SaleItem[] =>
-  sale.items && sale.items.length > 0 ? sale.items.map(it => ({ ...it })) : [emptyRow(sale.overallTerm)];
+const buildInitialRows = (sale: Sale | null): SaleItem[] =>
+  sale?.items && sale.items.length > 0 ? sale.items.map(it => ({ ...it })) : [emptyRow(sale?.overallTerm)];
 
-const buildInitialValues = (sale: Sale) => ({
-  invoiceNo: sale.invoiceNo.replace(/^U\s+/, ''),
-  date: sale.date,
-  epfNumber: sale.epfNumber,
-  customerName: sale.customerName,
-  institution: sale.institution,
-  contactNumber: sale.contactNumber,
-  nic: sale.nic || '',
-  overallTerm: sale.overallTerm || undefined,
+const buildInitialValues = (sale: Sale | null) => ({
+  invoiceNo: (sale?.invoiceNo ?? '').replace(/^U\s+/, ''),
+  date: sale?.date ?? '',
+  epfNumber: sale?.epfNumber ?? '',
+  customerName: sale?.customerName ?? '',
+  institution: sale?.institution ?? '',
+  contactNumber: sale?.contactNumber ?? '',
+  nic: sale?.nic ?? '',
+  overallTerm: sale?.overallTerm || undefined,
 });
 
 export const EditSaleModal: React.FC<{
@@ -39,7 +39,7 @@ export const EditSaleModal: React.FC<{
   const { items } = useItems();
   const { updateSale } = useSales();
 
-  const [rows, setRows] = useState<SaleItem[]>(() => buildInitialRows(sale as Sale));
+  const [rows, setRows] = useState<SaleItem[]>(() => buildInitialRows(sale));
   const [saving, setSaving] = useState(false);
 
   const overallTerm = Form.useWatch('overallTerm', form) ?? 0;
