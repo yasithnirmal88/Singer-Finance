@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Layout, Menu, Button, Avatar, Space, Dropdown } from 'antd';
 import type { MenuProps } from 'antd';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { 
   ShoppingCartOutlined, 
   UserOutlined, 
@@ -16,15 +17,16 @@ import { COMPANY_LOGO_SRC } from '../../config/company';
 
 const { Header, Sider, Content } = Layout;
 
-interface AppLayoutProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
-  children: React.ReactNode;
-}
-
-export const AppLayout: React.FC<AppLayoutProps> = ({ activeTab, setActiveTab, children }) => {
+/**
+ * The authenticated shell: sidebar, header, and the screen the current URL
+ * selects. The URL is the only record of which screen is open, so there is no
+ * tab state to keep in step with the page.
+ */
+export const AppLayout: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   const handleLogout = async () => {
     try {
@@ -54,31 +56,38 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ activeTab, setActiveTab, c
 
   const menuItems = [
     {
-      key: 'sale',
+      key: '/',
       icon: <ShoppingCartOutlined className="text-lg" />,
       label: 'New Sale',
     },
     {
-      key: 'customers',
+      key: '/customers',
       icon: <UserOutlined className="text-lg" />,
       label: 'Customers',
     },
     {
-      key: 'items',
+      key: '/items',
       icon: <ShoppingOutlined className="text-lg" />,
       label: 'Items',
     },
     {
-      key: 'history',
+      key: '/history',
       icon: <HistoryOutlined className="text-lg" />,
       label: 'Sales History',
     },
     {
-      key: 'data',
+      key: '/data',
       icon: <DatabaseOutlined className="text-lg" />,
       label: 'Data Management',
     },
   ];
+
+  /**
+   * The nav entry covering the current URL. A screen with a subpath of its own
+   * still highlights its parent, so /history/123 keeps Sales History selected.
+   */
+  const activeKey = (path: string) =>
+    menuItems.map(item => item.key).find(key => key !== '/' && path.startsWith(key)) ?? '/';
 
   return (
     <Layout className="min-h-screen bg-slate-50">
@@ -103,8 +112,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ activeTab, setActiveTab, c
         <Menu
           theme="dark"
           mode="inline"
-          selectedKeys={[activeTab]}
-          onClick={({ key }) => setActiveTab(key)}
+          selectedKeys={[activeKey(pathname)]}
+          onClick={({ key }) => navigate(key)}
           items={menuItems}
           className="bg-transparent mt-4 border-none px-2"
         />
@@ -140,7 +149,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ activeTab, setActiveTab, c
 
         {/* Content Wrapper */}
         <Content className="m-6 overflow-y-auto">
-          {children}
+          <Outlet />
         </Content>
       </Layout>
     </Layout>
