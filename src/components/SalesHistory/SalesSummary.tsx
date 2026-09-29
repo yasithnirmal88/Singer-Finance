@@ -9,6 +9,7 @@ import {
   InboxOutlined,
 } from '@ant-design/icons';
 import { TERM_OPTIONS } from '../../constants';
+import { formatCount, formatMoney } from '../../utils/format';
 import type { Sale } from '../../types';
 
 export interface SalesSummaryProps {
@@ -20,18 +21,6 @@ export interface SalesSummaryProps {
   /** The active search text, shown in the caption when a filter is applied. */
   searchText?: string;
 }
-
-/** Rs. 2,629,305.35 - always two decimals, always grouped. */
-const formatMoney = (value: number) => {
-  const safe = Number.isFinite(value) ? value : 0;
-  return `Rs. ${safe.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-};
-
-/** 1,234 - grouped, for counts. */
-const formatCount = (value: number) => value.toLocaleString('en-US');
 
 /** Sum of the line items, falling back to the stored total for itemless invoices. */
 const cashValueOf = (sale: Sale) => {

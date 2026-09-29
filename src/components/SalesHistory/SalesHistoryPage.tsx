@@ -15,8 +15,9 @@ import {
 } from '@ant-design/icons';
 import { useSales } from '../../hooks/useSales';
 import type { Sale, SaleItem } from '../../types';
-import { TERM_RATES, round2 } from '../../constants';
-import * as XLSX from 'xlsx';
+import { round2, getTermRate } from '../../utils/pricing';
+import { formatMoney } from '../../utils/format';
+import { FileReadError, downloadExcel, readExcelFile } from '../../utils/excel';
 import PrintLayout from '../Print/PrintLayout';
 import EditSaleModal from './EditSaleModal';
 import { SalesSummary } from './SalesSummary';
@@ -167,17 +168,10 @@ export const SalesHistoryPage: React.FC = () => {
       });
     });
 
-    const worksheet = XLSX.utils.json_to_sheet(exportRows);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sales Records');
-    
-    // Auto-fit column widths for better presentation
-    const maxKeys = Object.keys(exportRows[0]);
-    worksheet['!cols'] = maxKeys.map(key => ({
-      wch: Math.max(key.length + 3, ...exportRows.map(row => String(row[key] ?? '').length + 2))
-    }));
-
-    XLSX.writeFile(workbook, `${fileNamePrefix}_${Date.now()}.xlsx`);
+    downloadExcel(exportRows, `${fileNamePrefix}_${Date.now()}.xlsx`, {
+      sheetName: 'Sales Records',
+      autoFit: true,
+    });
     if (notify) message.success('Excel export completed successfully!');
     return true;
   };
@@ -235,20 +229,13 @@ export const SalesHistoryPage: React.FC = () => {
 
   const handleSalesUpload: NonNullable<UploadProps['beforeUpload']> = (file) => {
     setImporting(true);
-    const reader = new FileReader();
 
-    reader.onload = async (e) => {
+    const restoreFromFile = async () => {
       try {
-        const data = e.target?.result;
-        if (!data) throw new Error('Could not read file data');
-
-        const workbook = XLSX.read(data, { type: 'binary', cellDates: true });
-        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet) as Record<string, unknown>[];
+        const jsonData = await readExcelFile(file, { cellDates: true });
 
         if (jsonData.length === 0) {
           message.error('Uploaded Excel file is empty.');
-          setImporting(false);
           return;
         }
 
@@ -323,7 +310,7 @@ export const SalesHistoryPage: React.FC = () => {
             totalCashPrice: round2(saleItems.reduce((sum, i) => sum + (i.cashPrice || 0), 0)),
             totalRentalMonthly: round2(saleItems.reduce((sum, i) => sum + (i.rental || 0), 0)),
             overallTerm,
-            interestRate: TERM_RATES[overallTerm] ?? 0,
+            interestRate: getTermRate(overallTerm),
             createdBy: existing?.createdBy ?? '',
           });
         });
@@ -382,17 +369,16 @@ export const SalesHistoryPage: React.FC = () => {
         });
       } catch (error) {
         console.error(error);
-        message.error('Failed to parse the sales history data file.');
+        message.error(
+          error instanceof FileReadError
+            ? 'Failed to read the selected file.'
+            : 'Failed to parse the sales history data file.'
+        );
         setImporting(false);
       }
     };
 
-    reader.onerror = () => {
-      message.error('Failed to read the selected file.');
-      setImporting(false);
-    };
-
-    reader.readAsBinaryString(file);
+    void restoreFromFile();
     return false; // prevent default upload action
   };
 
@@ -429,10 +415,10 @@ export const SalesHistoryPage: React.FC = () => {
         'term': 12,
       },
     ];
-    const worksheet = XLSX.utils.json_to_sheet(templateData, { header: [...SALE_SHEET_HEADERS] });
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sales Records');
-    XLSX.writeFile(workbook, 'Sales_History_Import_Template.xlsx');
+    downloadExcel(templateData, 'Sales_History_Import_Template.xlsx', {
+      sheetName: 'Sales Records',
+      header: [...SALE_SHEET_HEADERS],
+    });
     message.success('Template downloaded.');
   };
 
@@ -479,14 +465,14 @@ export const SalesHistoryPage: React.FC = () => {
       title: 'Total Cash Price',
       dataIndex: 'totalCashPrice',
       key: 'totalCashPrice',
-      render: (val: number) => `Rs. ${val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      render: (val: number) => formatMoney(val),
       sorter: (a: Sale, b: Sale) => a.totalCashPrice - b.totalCashPrice,
     },
     {
       title: 'Total Rental',
       dataIndex: 'totalRentalMonthly',
       key: 'totalRentalMonthly',
-      render: (val: number) => `Rs. ${val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      render: (val: number) => formatMoney(val),
       sorter: (a: Sale, b: Sale) => a.totalRentalMonthly - b.totalRentalMonthly,
     },
     {
@@ -739,10 +725,10 @@ export const SalesHistoryPage: React.FC = () => {
                       <td className="border border-slate-200 p-2 font-mono font-medium">{it.modelNumber}</td>
                       <td className="border border-slate-200 p-2">{it.itemName}</td>
                       <td className="border border-slate-200 p-2 text-right">
-                        Rs. {it.cashPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        {formatMoney(it.cashPrice)}
                       </td>
                       <td className="border border-slate-200 p-2 text-right">
-                        Rs. {it.rental.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        {formatMoney(it.rental)}
                       </td>
                       <td className="border border-slate-200 p-2 text-center">{it.term} M</td>
                     </tr>
@@ -756,13 +742,13 @@ export const SalesHistoryPage: React.FC = () => {
               <div>
                 <Text type="secondary" className="block text-xs">Total Cash Price</Text>
                 <Text className="font-bold text-base text-slate-800">
-                  Rs. {selectedSale.totalCashPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  {formatMoney(selectedSale.totalCashPrice)}
                 </Text>
               </div>
               <div>
                 <Text type="secondary" className="block text-xs">Total Monthly Rental</Text>
                 <Text className="font-bold text-base text-singer">
-                  Rs. {selectedSale.totalRentalMonthly.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  {formatMoney(selectedSale.totalRentalMonthly)}
                 </Text>
               </div>
               <div>

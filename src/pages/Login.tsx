@@ -3,6 +3,7 @@ import { Form, Input, Button, Card, Typography, Divider, message } from 'antd';
 import { UserOutlined, LockOutlined, GoogleOutlined, LoginOutlined } from '@ant-design/icons';
 import { useAuth } from '../contexts/useAuth';
 import { getErrorCode, getErrorMessage } from '../utils/errors';
+import { BRAND_NAME, COMPANY_LOGO_SRC } from '../config/company';
 import type { LoginFormValues } from '../types';
 
 const { Title, Text } = Typography;
@@ -80,10 +81,10 @@ export const Login: React.FC = () => {
       >
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl shadow-lg mb-3 overflow-hidden">
-            <img src="/Singer-Logo.png" alt="Singer Finance" style={{ height: '90px', width: 'auto' }} />
+            <img src={COMPANY_LOGO_SRC} alt="Singer Finance" style={{ height: '90px', width: 'auto' }} />
           </div>
           <Title level={3} className="!text-slate-100 !m-0 !font-semibold">
-            Singer Finance
+            {BRAND_NAME}
           </Title>
           <Text className="text-slate-400 block mt-1">
             Operator Portal Access

@@ -10,8 +10,14 @@ import {
 } from '@ant-design/icons';
 import { useCustomers } from '../../hooks/useCustomers';
 import { useItems } from '../../hooks/useItems';
-import type { Customer, ExcelRow, Item } from '../../types';
-import * as XLSX from 'xlsx';
+import {
+  CUSTOMER_TEMPLATE_ROWS,
+  ITEM_TEMPLATE_ROWS,
+  downloadExcel,
+  parseCustomerRows,
+  parseItemRows,
+  readExcelFile,
+} from '../../utils/excel';
 
 const { Text, Paragraph } = Typography;
 
@@ -132,50 +138,24 @@ export const DataManagement: React.FC = () => {
   // Custom helper to parse and validate customer files
   const handleCustomerUpload: NonNullable<UploadProps['beforeUpload']> = (file) => {
     setCustLoading(true);
-    const reader = new FileReader();
-    
-    reader.onload = async (e) => {
+
+    const importRows = async () => {
       try {
-        const data = e.target?.result;
-        if (!data) throw new Error('Could not read file data');
-        
-        const workbook = XLSX.read(data, { type: 'binary' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet) as ExcelRow[];
-        
+        const jsonData = await readExcelFile(file);
+
         if (jsonData.length === 0) {
           message.error('Uploaded Excel file is empty.');
-          setCustLoading(false);
           return;
         }
 
-        // Column mapping helper
-        const mappedCustomers: Customer[] = [];
-        for (const row of jsonData) {
-          const epfKey = Object.keys(row).find(k => k.toLowerCase().replace(/\s+/g, '') === 'epfnumber' || k.toLowerCase() === 'epf');
-          const nameKey = Object.keys(row).find(k => k.toLowerCase().replace(/\s+/g, '') === 'fullname' || k.toLowerCase().replace(/\s+/g, '') === 'customername' || k.toLowerCase() === 'name');
-          const nicKey = Object.keys(row).find(k => k.toLowerCase() === 'nic');
-          const instKey = Object.keys(row).find(k => k.toLowerCase() === 'institution');
-          const contactKey = Object.keys(row).find(k => k.toLowerCase().replace(/\s+/g, '') === 'contactnumber' || k.toLowerCase() === 'mobile' || k.toLowerCase() === 'contact' || k.toLowerCase() === 'phone');
-          
-          if (!epfKey || !nameKey) {
-            message.error('Invalid template. Customer Excel must contain at least "EPF Number" (or "EPF") and "Full Name" (or "Name") columns.');
-            setCustLoading(false);
-            return;
-          }
-          
-          mappedCustomers.push({
-            epfNumber: String(row[epfKey]).trim(),
-            customerName: String(row[nameKey]).trim(),
-            institution: instKey ? String(row[instKey]).trim() : '',
-            contactNumber: contactKey ? String(row[contactKey]).trim() : '',
-            nic: nicKey ? String(row[nicKey]).trim() : '',
-          });
+        const parsed = parseCustomerRows(jsonData);
+        if (!parsed.ok) {
+          message.error(parsed.error);
+          return;
         }
 
-        await bulkAddCustomers(mappedCustomers);
-        message.success(`Successfully loaded ${mappedCustomers.length} customers into the database!`);
+        await bulkAddCustomers(parsed.rows);
+        message.success(`Successfully loaded ${parsed.rows.length} customers into the database!`);
       } catch (error) {
         console.error(error);
         message.error('Failed to parse the customer data file.');
@@ -183,71 +163,32 @@ export const DataManagement: React.FC = () => {
         setCustLoading(false);
       }
     };
-    
-    reader.readAsBinaryString(file);
+
+    void importRows();
     return false; // prevent default upload action
   };
 
   // Custom helper to parse and validate item files
   const handleItemUpload: NonNullable<UploadProps['beforeUpload']> = (file) => {
     setItemLoading(true);
-    const reader = new FileReader();
-    
-    reader.onload = async (e) => {
+
+    const importRows = async () => {
       try {
-        const data = e.target?.result;
-        if (!data) throw new Error('Could not read file data');
-        
-        const workbook = XLSX.read(data, { type: 'binary' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet) as ExcelRow[];
-        
+        const jsonData = await readExcelFile(file);
+
         if (jsonData.length === 0) {
           message.error('Uploaded Excel file is empty.');
-          setItemLoading(false);
           return;
         }
 
-        const mappedItems: Item[] = [];
-        for (const row of jsonData) {
-          const modelKey = Object.keys(row).find(k => 
-            k.toLowerCase().replace(/\s+/g, '') === 'salespartno' || 
-            k.toLowerCase().replace(/\s+/g, '') === 'modelnumber' || 
-            k.toLowerCase() === 'model'
-          );
-          const nameKey = Object.keys(row).find(k => 
-            k.toLowerCase().replace(/\s+/g, '') === 'salespartdescription' || 
-            k.toLowerCase().replace(/\s+/g, '') === 'itemname' || 
-            k.toLowerCase().replace(/\s+/g, '') === 'name' || 
-            k.toLowerCase() === 'item'
-          );
-          const priceKey = Object.keys(row).find(k => 
-            k.toLowerCase().replace(/\s+/g, '') === 'cashprice' || 
-            k.toLowerCase().replace(/\s+/g, '') === 'price' || 
-            k.toLowerCase().replace(/\s+/g, '') === 'discountedprice'
-          );
-          const rentalKey = Object.keys(row).find(k => 
-            k.toLowerCase() === 'rental' || 
-            k.toLowerCase().includes('rental')
-          );
-          
-          if (!modelKey || !nameKey) {
-            message.error('Invalid template. Item Excel must contain at least "SalesPartNo" (or "Model") and "Sales Part Description" (or "Item Name") columns.');
-            setItemLoading(false);
-            return;
-          }
-          
-          mappedItems.push({
-            modelNumber: String(row[modelKey]).trim().toUpperCase(),
-            itemName: String(row[nameKey]).trim(),
-            cashPrice: priceKey ? Number(String(row[priceKey]).replace(/,/g, '')) || 0 : 0,
-            rental: rentalKey ? Number(String(row[rentalKey]).replace(/,/g, '')) || 0 : 0,
-          });
+        const parsed = parseItemRows(jsonData);
+        if (!parsed.ok) {
+          message.error(parsed.error);
+          return;
         }
 
-        await bulkAddItems(mappedItems);
-        message.success(`Successfully loaded ${mappedItems.length} items into the database!`);
+        await bulkAddItems(parsed.rows);
+        message.success(`Successfully loaded ${parsed.rows.length} items into the database!`);
       } catch (error) {
         console.error(error);
         message.error('Failed to parse the items data file.');
@@ -255,8 +196,8 @@ export const DataManagement: React.FC = () => {
         setItemLoading(false);
       }
     };
-    
-    reader.readAsBinaryString(file);
+
+    void importRows();
     return false; // prevent default upload action
   };
 
@@ -300,10 +241,7 @@ export const DataManagement: React.FC = () => {
       'Contact Number': c.contactNumber,
       'NIC': c.nic || '',
     }));
-    const worksheet = XLSX.utils.json_to_sheet(rows);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Customers');
-    XLSX.writeFile(workbook, 'customer_database.xlsx');
+    downloadExcel(rows, 'customer_database.xlsx', { sheetName: 'Customers' });
     message.success(`Exported ${customers.length} customer records.`);
   };
 
@@ -318,34 +256,17 @@ export const DataManagement: React.FC = () => {
       'Cash Price': item.cashPrice,
       'Rental': item.rental,
     }));
-    const worksheet = XLSX.utils.json_to_sheet(rows);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Items');
-    XLSX.writeFile(workbook, 'item_database.xlsx');
+    downloadExcel(rows, 'item_database.xlsx', { sheetName: 'Items' });
     message.success(`Exported ${items.length} item records.`);
   };
 
   // Download templates helper
   const downloadCustomerTemplate = () => {
-    const templateData = [
-      { 'EPF Number': 'EPF-001', 'Customer Name': 'Sampath Perera', 'Institution': 'National Hospital', 'Contact Number': '0711234567' },
-      { 'EPF Number': 'EPF-002', 'Customer Name': 'Nimali Silva', 'Institution': 'Ministry of Education', 'Contact Number': '0777654321' }
-    ];
-    const worksheet = XLSX.utils.json_to_sheet(templateData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Customers');
-    XLSX.writeFile(workbook, 'Customer_Import_Template.xlsx');
+    downloadExcel(CUSTOMER_TEMPLATE_ROWS, 'Customer_Import_Template.xlsx', { sheetName: 'Customers' });
   };
 
   const downloadItemTemplate = () => {
-    const templateData = [
-      { 'Model Number': 'SIS-REF-01', 'Item Name': 'Singer Refrigerator 250L', 'Cash Price': 85000, 'Rental': 4200 },
-      { 'Model Number': 'SIS-TV-32', 'Item Name': 'Singer LED TV 32"', 'Cash Price': 45000, 'Rental': 2100 }
-    ];
-    const worksheet = XLSX.utils.json_to_sheet(templateData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Items');
-    XLSX.writeFile(workbook, 'Items_Import_Template.xlsx');
+    downloadExcel(ITEM_TEMPLATE_ROWS, 'Items_Import_Template.xlsx', { sheetName: 'Items' });
   };
 
   return (

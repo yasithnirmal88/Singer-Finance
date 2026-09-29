@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Form, Input, Button, Card, Table, Space, Popconfirm, Modal, Row, Col, message, Upload, Divider } from 'antd';
 import { PlusOutlined, DeleteOutlined, EditOutlined, SearchOutlined, UserOutlined, UploadOutlined } from '@ant-design/icons';
 import { useCustomers } from '../../hooks/useCustomers';
-import type { Customer, ExcelRow } from '../../types';
-import * as XLSX from 'xlsx';
+import type { Customer } from '../../types';
+import { parseCustomerRows, readExcelFile } from '../../utils/excel';
 
 export const CustomersPage: React.FC = () => {
   const { customers, loading, addCustomer, deleteCustomer, bulkAddCustomers, clearAllCustomers } = useCustomers();
@@ -15,51 +15,26 @@ export const CustomersPage: React.FC = () => {
   const [addForm] = Form.useForm();
   const [editForm] = Form.useForm();
 
-  const handleCustomerUpload = async (file: File) => {
+  const handleCustomerUpload = (file: File) => {
     setCustLoading(true);
-    const reader = new FileReader();
-    
-    reader.onload = async (e) => {
+
+    const importRows = async () => {
       try {
-        const data = e.target?.result;
-        if (!data) throw new Error('Could not read file data');
-        
-        const workbook = XLSX.read(data, { type: 'binary' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet) as ExcelRow[];
-        
+        const jsonData = await readExcelFile(file);
+
         if (jsonData.length === 0) {
           message.error('Uploaded Excel file is empty.');
-          setCustLoading(false);
           return;
         }
 
-        const mappedCustomers: Customer[] = [];
-        for (const row of jsonData) {
-          const epfKey = Object.keys(row).find(k => k.toLowerCase().replace(/\s+/g, '') === 'epfnumber' || k.toLowerCase() === 'epf');
-          const nameKey = Object.keys(row).find(k => k.toLowerCase().replace(/\s+/g, '') === 'fullname' || k.toLowerCase().replace(/\s+/g, '') === 'customername' || k.toLowerCase() === 'name');
-          const nicKey = Object.keys(row).find(k => k.toLowerCase() === 'nic');
-          const instKey = Object.keys(row).find(k => k.toLowerCase() === 'institution');
-          const contactKey = Object.keys(row).find(k => k.toLowerCase().replace(/\s+/g, '') === 'contactnumber' || k.toLowerCase() === 'mobile' || k.toLowerCase() === 'contact' || k.toLowerCase() === 'phone');
-          
-          if (!epfKey || !nameKey) {
-            message.error('Invalid template. Customer Excel must contain at least "EPF Number" (or "EPF") and "Full Name" (or "Name") columns.');
-            setCustLoading(false);
-            return;
-          }
-          
-          mappedCustomers.push({
-            epfNumber: String(row[epfKey]).trim(),
-            customerName: String(row[nameKey]).trim(),
-            institution: instKey ? String(row[instKey]).trim() : '',
-            contactNumber: contactKey ? String(row[contactKey]).trim() : '',
-            nic: nicKey ? String(row[nicKey]).trim() : '',
-          });
+        const parsed = parseCustomerRows(jsonData);
+        if (!parsed.ok) {
+          message.error(parsed.error);
+          return;
         }
 
-        await bulkAddCustomers(mappedCustomers);
-        message.success(`Successfully loaded ${mappedCustomers.length} customers into the database!`);
+        await bulkAddCustomers(parsed.rows);
+        message.success(`Successfully loaded ${parsed.rows.length} customers into the database!`);
       } catch (error) {
         console.error(error);
         message.error('Failed to parse the customer data file.');
@@ -67,8 +42,8 @@ export const CustomersPage: React.FC = () => {
         setCustLoading(false);
       }
     };
-    
-    reader.readAsBinaryString(file);
+
+    void importRows();
     return false; // prevent default upload action
   };
 

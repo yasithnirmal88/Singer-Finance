@@ -1,5 +1,11 @@
 import React from 'react';
 import './PrintLayout.css';
+import {
+  COMPANY_ADDRESS_LINE,
+  COMPANY_LEGAL_NAME,
+  COMPANY_LOGO_SRC,
+  FALLBACK_INVOICE_NO,
+} from '../../config/company';
 
 export interface PrintSaleItem {
   modelNumber: string;
@@ -42,14 +48,14 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
     <div className="print-only-container">
       <div className="document-frame" style={{ borderBottom: '3px double #333' }}>
         <div className="serial-number-block">
-          <span className="serial-number">{(saleData.invoiceNo || '19471').replace(/^U\s+/, '')}</span>
+          <span className="serial-number">{(saleData.invoiceNo || FALLBACK_INVOICE_NO).replace(/^U\s+/, '')}</span>
         </div>
 
         <div className="doc-header">
-          <img src="/Singer-Logo.png" alt="Singer Finance" style={{ height: '50px', width: 'auto', objectFit: 'contain' }} />
+          <img src={COMPANY_LOGO_SRC} alt="Singer Finance" style={{ height: '50px', width: 'auto', objectFit: 'contain' }} />
           <div style={{ flex: 1 }}>
-            <div className="company-title">Singer Finance (Lanka) PLC</div>
-            <div className="company-address">No. 498, R. A. De Mel Mawatha, Colombo 03. Tel : 0112 400 400</div>
+            <div className="company-title">{COMPANY_LEGAL_NAME}</div>
+            <div className="company-address">{COMPANY_ADDRESS_LINE}</div>
           </div>
         </div>
 
@@ -172,7 +178,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
         <div className="legal-section-title" style={{ marginTop: '10px' }}>General Conditions</div>
         <ol className="legal-list legal-text">
           <li>We reserve the right to include/pass on any new taxes/levies imposed by the government by time to time.</li>
-          <li>If the customer changes the current employment should be notified to the Singer Finance (Lanka) PLC.</li>
+          <li>If the customer changes the current employment should be notified to the {COMPANY_LEGAL_NAME}.</li>
           <li>The company reserves the right to review facility at its sole discretion from time to time and discontinue or vary the terms and conditions relating thereto including but not limited to the interest in default.</li>
           <li>The facilities hereunder shall be available to you only on perfection of the security documents.</li>
           <li>In addition to the above stated terms and conditions, the facility contains herein shall be subject to all clauses, terms and condition stipulated in the agreement and other contractual documents already executed by you and any other documents which may be required to be executed by you in the future.</li>
@@ -185,7 +191,7 @@ export const PrintLayout: React.FC<PrintLayoutProps> = ({ saleData }) => {
         <div className="legal-text" style={{ marginTop: '4px' }}>We look forward to a mutually beneficial relationship.</div>
 
         <div style={{ marginTop: '12px', fontSize: '7.5pt' }}>
-          <div>Your faithfully,<br /><strong>Singer Finance (Lanka) PLC</strong></div>
+          <div>Your faithfully,<br /><strong>{COMPANY_LEGAL_NAME}</strong></div>
           <div style={{ marginTop: '0px' }}>Accepted the terms and conditions of the facility</div>
           <div style={{ borderTop: '1px dashed #000', marginTop: '36px', width: '60%' }}></div>
           <div style={{ fontSize: '7.5pt', marginTop: '2px' }}>Signed by the customer</div>

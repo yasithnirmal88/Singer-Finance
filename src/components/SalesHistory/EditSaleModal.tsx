@@ -4,7 +4,9 @@ import { PlusOutlined, DeleteOutlined, SaveOutlined } from '@ant-design/icons';
 import { useItems } from '../../hooks/useItems';
 import { useSales } from '../../hooks/useSales';
 import { useCustomers } from '../../hooks/useCustomers';
-import { TERM_OPTIONS, TERM_RATES, round2 } from '../../constants';
+import { TERM_OPTIONS } from '../../constants';
+import { getTermRate, round2 } from '../../utils/pricing';
+import { formatMoney } from '../../utils/format';
 import type { Customer, Sale, SaleItem } from '../../types';
 
 const { Text } = Typography;
@@ -98,7 +100,7 @@ export const EditSaleModal: React.FC<{
       if (!item) {
         next[index] = { ...row, modelNumber, itemName: '', cashPrice: 0, rental: 0 };
       } else {
-        const rate = TERM_RATES[overallTerm] || 0;
+        const rate = getTermRate(overallTerm);
         next[index] = {
           ...row,
           modelNumber: item.modelNumber,
@@ -122,7 +124,7 @@ export const EditSaleModal: React.FC<{
 
   const handleTermChange = (value: number | undefined) => {
     const term = Number(value) || 0;
-    const rate = TERM_RATES[term] || 0;
+    const rate = getTermRate(term);
     setRows((prev) =>
       prev.map(row =>
         row.modelNumber
@@ -178,7 +180,7 @@ export const EditSaleModal: React.FC<{
         totalCashPrice,
         totalRentalMonthly,
         overallTerm: term,
-        interestRate: TERM_RATES[term] ?? sale.interestRate ?? 0,
+        interestRate: getTermRate(term) || sale.interestRate || 0,
       });
 
       message.success(`Invoice ${sale.invoiceNo.replace(/^U\s+/, '')} updated successfully.`);
@@ -378,7 +380,7 @@ export const EditSaleModal: React.FC<{
             <Space orientation="vertical" size={2}>
               <Text type="secondary" className="text-xs">Total Cash Price</Text>
               <Text className="font-bold text-base text-slate-800">
-                Rs. {totalCashPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {formatMoney(totalCashPrice)}
               </Text>
             </Space>
           </Col>
@@ -386,7 +388,7 @@ export const EditSaleModal: React.FC<{
             <Space orientation="vertical" size={2}>
               <Text type="secondary" className="text-xs">Total Monthly Rental</Text>
               <Text className="font-bold text-base text-singer">
-                Rs. {totalRentalMonthly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {formatMoney(totalRentalMonthly)}
               </Text>
             </Space>
           </Col>

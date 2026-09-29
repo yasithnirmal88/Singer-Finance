@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { Form, Input, InputNumber, Button, Card, Table, Space, Popconfirm, Modal, Row, Col, message, Upload, Divider } from 'antd';
 import { PlusOutlined, DeleteOutlined, EditOutlined, SearchOutlined, ShoppingOutlined, UploadOutlined } from '@ant-design/icons';
 import { useItems } from '../../hooks/useItems';
-import type { ExcelRow, Item } from '../../types';
-import * as XLSX from 'xlsx';
+import type { Item } from '../../types';
+import { parseItemRows, readExcelFile } from '../../utils/excel';
+import { formatMoney } from '../../utils/format';
 
 /**
  * Form shape for the item forms. The numeric cells can arrive as a number or as
@@ -87,65 +88,26 @@ export const ItemsPage: React.FC = () => {
     }
   };
 
-  const handleItemUpload = async (file: File) => {
+  const handleItemUpload = (file: File) => {
     setUploadLoading(true);
-    const reader = new FileReader();
 
-    reader.onload = async (e) => {
+    const importRows = async () => {
       try {
-        const data = e.target?.result;
-        if (!data) throw new Error('Could not read file data');
-
-        const workbook = XLSX.read(data, { type: 'binary' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet) as ExcelRow[];
+        const jsonData = await readExcelFile(file);
 
         if (jsonData.length === 0) {
           message.error('Uploaded Excel file is empty.');
-          setUploadLoading(false);
           return;
         }
 
-        const mappedItems: Item[] = [];
-        for (const row of jsonData) {
-          const modelKey = Object.keys(row).find(k => 
-            k.toLowerCase().replace(/\s+/g, '') === 'salespartno' || 
-            k.toLowerCase().replace(/\s+/g, '') === 'modelnumber' || 
-            k.toLowerCase() === 'model'
-          );
-          const nameKey = Object.keys(row).find(k => 
-            k.toLowerCase().replace(/\s+/g, '') === 'salespartdescription' || 
-            k.toLowerCase().replace(/\s+/g, '') === 'itemname' || 
-            k.toLowerCase().replace(/\s+/g, '') === 'name' || 
-            k.toLowerCase() === 'item'
-          );
-          const priceKey = Object.keys(row).find(k => 
-            k.toLowerCase().replace(/\s+/g, '') === 'cashprice' || 
-            k.toLowerCase().replace(/\s+/g, '') === 'price' || 
-            k.toLowerCase().replace(/\s+/g, '') === 'discountedprice'
-          );
-          const rentalKey = Object.keys(row).find(k => 
-            k.toLowerCase() === 'rental' || 
-            k.toLowerCase().includes('rental')
-          );
-
-          if (!modelKey || !nameKey) {
-            message.error('Invalid template. Item Excel must contain at least "SalesPartNo" (or "Model") and "Sales Part Description" (or "Item Name") columns.');
-            setUploadLoading(false);
-            return;
-          }
-
-          mappedItems.push({
-            modelNumber: String(row[modelKey]).trim().toUpperCase(),
-            itemName: String(row[nameKey]).trim(),
-            cashPrice: priceKey ? Number(String(row[priceKey]).replace(/,/g, '')) || 0 : 0,
-            rental: rentalKey ? Number(String(row[rentalKey]).replace(/,/g, '')) || 0 : 0,
-          });
+        const parsed = parseItemRows(jsonData);
+        if (!parsed.ok) {
+          message.error(parsed.error);
+          return;
         }
 
-        await bulkAddItems(mappedItems);
-        message.success(`Successfully loaded ${mappedItems.length} items into the database!`);
+        await bulkAddItems(parsed.rows);
+        message.success(`Successfully loaded ${parsed.rows.length} items into the database!`);
       } catch (error) {
         console.error(error);
         message.error('Failed to parse the items data file.');
@@ -154,8 +116,8 @@ export const ItemsPage: React.FC = () => {
       }
     };
 
-    reader.readAsBinaryString(file);
-    return false;
+    void importRows();
+    return false; // prevent default upload action
   };
 
   // Filter items based on search text
@@ -181,14 +143,14 @@ export const ItemsPage: React.FC = () => {
       title: 'Cash Price (Rs)',
       dataIndex: 'cashPrice',
       key: 'cashPrice',
-      render: (price: number) => `Rs. ${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      render: (price: number) => formatMoney(price),
       sorter: (a: Item, b: Item) => a.cashPrice - b.cashPrice,
     },
     {
       title: 'Default Monthly Rental (Rs)',
       dataIndex: 'rental',
       key: 'rental',
-      render: (rental: number) => `Rs. ${rental.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      render: (rental: number) => formatMoney(rental),
       sorter: (a: Item, b: Item) => a.rental - b.rental,
     },
     {

@@ -5,7 +5,9 @@ import { useCustomers } from '../../hooks/useCustomers';
 import { useItems } from '../../hooks/useItems';
 import { useSales } from '../../hooks/useSales';
 import type { Customer, SaleItem } from '../../types';
-import { TERM_OPTIONS, TERM_RATES } from '../../constants';
+import { TERM_OPTIONS } from '../../constants';
+import { getTermRate, round2 } from '../../utils/pricing';
+import { formatMoney } from '../../utils/format';
 import PrintLayout from '../Print/PrintLayout';
 import type { PrintSaleData } from '../Print/PrintLayout';
 
@@ -94,14 +96,14 @@ export const NewSalePage: React.FC = () => {
   const handleModelSelect = (rowIndex: number, value: string) => {
     const item = items.find(it => it.modelNumber === value);
     if (item) {
-      const rate = overallTerm ? TERM_RATES[overallTerm] || 0 : 0;
+      const rate = getTermRate(overallTerm);
       const updatedRows = [...rows];
       updatedRows[rowIndex] = {
         ...updatedRows[rowIndex],
         modelNumber: item.modelNumber,
         itemName: item.itemName,
         cashPrice: item.cashPrice,
-        rental: rate ? Math.round(item.cashPrice * rate * 100) / 100 : item.rental,
+        rental: rate ? round2(item.cashPrice * rate) : item.rental,
         term: overallTerm || 0,
       };
       setRows(updatedRows);
@@ -119,12 +121,12 @@ export const NewSalePage: React.FC = () => {
 
   const handleOverallTermChange = (value: number) => {
     setOverallTerm(value);
-    const rate = TERM_RATES[value] || 0;
+    const rate = getTermRate(value);
     setInterestRate(rate);
 
     const updatedRows = rows.map(row => {
       if (row.modelNumber) {
-        return { ...row, term: value, rental: Math.round(row.cashPrice * rate * 100) / 100 };
+        return { ...row, term: value, rental: round2(row.cashPrice * rate) };
       }
       return row;
     });
@@ -412,7 +414,7 @@ export const NewSalePage: React.FC = () => {
             <Col xs={24} sm={12} md={6}>
               <Form.Item label="Total Cash Price (Rs)">
                 <Input 
-                  value={`Rs. ${totalCashPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} 
+                  value={formatMoney(totalCashPrice)} 
                   readOnly 
                   className="bg-slate-50 font-bold text-slate-800"
                 />
@@ -422,7 +424,7 @@ export const NewSalePage: React.FC = () => {
             <Col xs={24} sm={12} md={6}>
               <Form.Item label="Total Monthly Rental (Rs)">
                 <Input 
-                  value={`Rs. ${totalRentalMonthly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} 
+                  value={formatMoney(totalRentalMonthly)} 
                   readOnly 
                   className="bg-slate-50 font-bold text-singer"
                 />
