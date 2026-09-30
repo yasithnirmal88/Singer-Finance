@@ -101,15 +101,6 @@ export const AppLayout: React.FC = () => {
         className="shadow-xl bg-slate-900 border-r border-slate-800 no-print"
         width={240}
       >
-        <div className="h-16 flex items-center justify-center border-b border-slate-800 gap-2 px-4 overflow-hidden">
-          <img src={COMPANY_LOGO_SRC} alt="Singer Finance" style={{ height: '28px', width: 'auto', objectFit: 'contain', display: 'block' }} />
-          {!collapsed && (
-            <span className="text-slate-100 font-bold text-sm tracking-wide transition-opacity duration-300 whitespace-nowrap">
-              SINGER FINANCE
-            </span>
-          )}
-        </div>
-        
         <Menu
           theme="dark"
           mode="inline"
@@ -123,7 +114,7 @@ export const AppLayout: React.FC = () => {
       {/* Main Layout Area */}
       <Layout>
         {/* Header */}
-        <Header className="bg-white px-6 border-b border-slate-200/80 flex items-center justify-between h-16 shadow-sm no-print">
+        <Header className="relative bg-white px-6 border-b border-slate-200/80 flex items-center justify-between h-16 shadow-sm no-print">
           <Button
             type="text"
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
@@ -131,6 +122,14 @@ export const AppLayout: React.FC = () => {
             className="text-slate-600 hover:text-slate-800 focus:text-slate-800"
             size="large"
           />
+
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+            <img
+              src={COMPANY_LOGO_SRC}
+              alt="Singer Finance"
+              style={{ height: '44px', width: 'auto', objectFit: 'contain', display: 'block' }}
+            />
+          </div>
 
           <Space size="large">
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={['click']}>
