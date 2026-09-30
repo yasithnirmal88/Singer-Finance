@@ -1,84 +1,26 @@
-import React, { useState } from 'react';
-import { Table, Button, Card, Space, Popconfirm, Modal, Typography, Input, Upload, message } from 'antd';
-import type { UploadProps } from 'antd';
+import React, { useMemo, useState } from 'react';
+import { Button, Card, Space, Modal, Input, message } from 'antd';
 import {
   SearchOutlined,
-  PrinterOutlined,
   FileExcelOutlined,
   DeleteOutlined,
-  EyeOutlined,
-  EditOutlined,
-  UploadOutlined,
-  DownloadOutlined,
-  InboxOutlined,
   ExclamationCircleFilled,
 } from '@ant-design/icons';
 import { useSales } from '../../hooks/useSales';
-import type { Sale, SaleItem } from '../../types';
-import { round2, getTermRate } from '../../utils/pricing';
-import { formatMoney } from '../../utils/format';
-import { FileReadError, downloadExcel, readExcelFile } from '../../utils/excel';
+import { usePrintSale } from '../../hooks/usePrintSale';
+import type { Sale } from '../../types';
+import { downloadExcel } from '../../utils/excel';
+import { buildSalesExportRows } from '../../utils/salesSheet';
 import PrintLayout from '../Print/PrintLayout';
 import EditSaleModal from './EditSaleModal';
 import { SalesSummary } from './SalesSummary';
-
-const { Text } = Typography;
-
-const SALE_SHEET_HEADERS = [
-  'EPF',
-  'Name',
-  'ID',
-  'Date',
-  'NIC',
-  'mobile',
-  'Institution',
-  'Item',
-  'model number',
-  'cash price',
-  'total',
-  'rental',
-  'term',
-] as const;
-
-const normalizeKey = (key: string) => key.toLowerCase().replace(/\s+/g, '');
-
-const findColumn = (keys: string[], aliases: string[]) =>
-  keys.find(key => aliases.includes(normalizeKey(key)));
-
-const toNumber = (value: unknown): number => {
-  if (typeof value === 'number') return isFinite(value) ? value : 0;
-  const parsed = Number(String(value ?? '').replace(/[^0-9.-]/g, ''));
-  return isNaN(parsed) ? 0 : parsed;
-};
-
-const normalizeInvoiceNo = (value: string) => {
-  const trimmed = value.trim().replace(/^U\s+/i, '');
-  if (/^\d+$/.test(trimmed)) return trimmed.padStart(4, '0');
-  return trimmed;
-};
-
-const excelSerialToDate = (serial: number) => {
-  const utcDays = Math.floor(serial - 25569);
-  return new Date(utcDays * 86400 * 1000).toISOString().slice(0, 10);
-};
-
-const toDateString = (value: unknown): string => {
-  if (value === undefined || value === null || value === '') {
-    return new Date().toISOString().slice(0, 10);
-  }
-  if (value instanceof Date) return value.toISOString().slice(0, 10);
-  if (typeof value === 'number' && isFinite(value)) return excelSerialToDate(value);
-
-  const raw = String(value).trim();
-  const dmy = /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/.exec(raw);
-  if (dmy) return `${dmy[3]}-${dmy[1].padStart(2, '0')}-${dmy[2].padStart(2, '0')}`;
-
-  const parsed = new Date(raw);
-  return isNaN(parsed.getTime()) ? new Date().toISOString().slice(0, 10) : parsed.toISOString().slice(0, 10);
-};
+import SalesHistoryTable from './SalesHistoryTable';
+import SaleDetailsModal from './SaleDetailsModal';
+import SalesRestoreCard from './SalesRestoreCard';
 
 export const SalesHistoryPage: React.FC = () => {
-  const { sales, loading, deleteSale, clearAllSales, bulkAddSales } = useSales();
+  const { sales, loading, deleteSale, clearAllSales } = useSales();
+  const { printSaleData, printSale } = usePrintSale();
   const [searchText, setSearchText] = useState('');
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
@@ -86,20 +28,6 @@ export const SalesHistoryPage: React.FC = () => {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [importing, setImporting] = useState(false);
-  const [printSaleData, setPrintSaleData] = useState<{
-    saleData: {
-      invoiceNo: string;
-      date: string;
-      customerName: string;
-      institution: string;
-      epfNumber: string;
-      contactNumber: string;
-      items: Sale['items'];
-      totalCashPrice: number;
-      totalRental: number;
-      term: number;
-    };
-  } | null>(null);
 
   const handleDelete = async (id: string) => {
     try {
@@ -109,26 +37,6 @@ export const SalesHistoryPage: React.FC = () => {
       console.error(error);
       message.error('Failed to delete sale record.');
     }
-  };
-
-  const handlePrint = (sale: Sale) => {
-    setPrintSaleData({
-      saleData: {
-        invoiceNo: sale.invoiceNo,
-        date: sale.date,
-        customerName: sale.customerName,
-        institution: sale.institution,
-        epfNumber: sale.epfNumber,
-        contactNumber: sale.contactNumber,
-        items: sale.items,
-        totalCashPrice: sale.totalCashPrice,
-        totalRental: sale.totalRentalMonthly,
-        term: sale.overallTerm,
-      },
-    });
-    setTimeout(() => {
-      window.print();
-    }, 500);
   };
 
   const handleViewDetails = (sale: Sale) => {
@@ -147,28 +55,7 @@ export const SalesHistoryPage: React.FC = () => {
       return false;
     }
 
-    const exportRows: Record<string, string | number>[] = [];
-    sales.forEach(s => {
-      s.items.forEach(item => {
-        exportRows.push({
-          'EPF': s.epfNumber,
-          'Name': s.customerName,
-          'ID': s.invoiceNo.replace(/^U\s+/, ''),
-          'Date': s.date,
-          'NIC': s.nic || '',
-          'mobile': s.contactNumber,
-          'Institution': s.institution,
-          'Item': item.itemName,
-          'model number': item.modelNumber,
-          'cash price': item.cashPrice,
-          'total': s.totalCashPrice,
-          'rental': item.rental,
-          'term': item.term || s.overallTerm
-        });
-      });
-    });
-
-    downloadExcel(exportRows, `${fileNamePrefix}_${Date.now()}.xlsx`, {
+    downloadExcel(buildSalesExportRows(sales), `${fileNamePrefix}_${Date.now()}.xlsx`, {
       sheetName: 'Sales Records',
       autoFit: true,
     });
@@ -227,298 +114,22 @@ export const SalesHistoryPage: React.FC = () => {
     });
   };
 
-  const handleSalesUpload: NonNullable<UploadProps['beforeUpload']> = (file) => {
-    setImporting(true);
-
-    const restoreFromFile = async () => {
-      try {
-        const jsonData = await readExcelFile(file, { cellDates: true });
-
-        if (jsonData.length === 0) {
-          message.error('Uploaded Excel file is empty.');
-          return;
-        }
-
-        const keys = Array.from(jsonData.reduce((acc, row) => {
-          Object.keys(row).forEach(key => acc.add(key));
-          return acc;
-        }, new Set<string>()));
-        const invoiceKey = findColumn(keys, ['id', 'invoiceno', 'invoice', 'invoicenumber']);
-        const epfKey = findColumn(keys, ['epf', 'epfnumber']);
-        const nameKey = findColumn(keys, ['name', 'customername', 'fullname']);
-        const itemKey = findColumn(keys, ['item', 'itemname', 'salespartdescription']);
-        const modelKey = findColumn(keys, ['modelnumber', 'model', 'salespartno']);
-        const priceKey = findColumn(keys, ['cashprice', 'price', 'discountedprice']);
-        const rentalKey = keys.find(k => normalizeKey(k) === 'rental' || normalizeKey(k).includes('rental'));
-        const dateKey = findColumn(keys, ['date', 'transactiondate', 'invoicedate']);
-        const nicKey = findColumn(keys, ['nic', 'nicnumber', 'idnumber']);
-        const mobileKey = findColumn(keys, ['mobile', 'contactnumber', 'contact', 'phone']);
-        const instKey = findColumn(keys, ['institution', 'company']);
-        const termKey = findColumn(keys, ['term']);
-
-        if (!invoiceKey) {
-          message.error('Invalid template. The Excel must contain an "ID" (invoice number) column.');
-          setImporting(false);
-          return;
-        }
-        if (!epfKey && !nameKey) {
-          message.error('Invalid template. The Excel must contain at least an "EPF" or "Name" column.');
-          setImporting(false);
-          return;
-        }
-        if (!itemKey && !modelKey) {
-          message.error('Invalid template. The Excel must contain at least an "Item" or "model number" column.');
-          setImporting(false);
-          return;
-        }
-
-        const grouped = new Map<string, Sale>();
-
-        jsonData.forEach(row => {
-          const invoiceNo = normalizeInvoiceNo(String(row[invoiceKey] ?? ''));
-          if (!invoiceNo) return;
-
-          const existing = grouped.get(invoiceNo);
-          const saleItems: SaleItem[] = existing ? [...existing.items] : [];
-
-          const itemName = itemKey ? String(row[itemKey] ?? '').trim() : '';
-          const modelNumber = modelKey ? String(row[modelKey] ?? '').trim() : '';
-          if (itemName || modelNumber) {
-            saleItems.push({
-              itemName,
-              modelNumber,
-              cashPrice: toNumber(priceKey ? row[priceKey] : row['cash price']),
-              rental: toNumber(rentalKey ? row[rentalKey] : row['rental']),
-              term: termKey ? toNumber(row[termKey]) : (existing?.overallTerm ?? 0),
-            });
-          }
-
-          const overallTerm = termKey
-            ? toNumber(row[termKey])
-            : (saleItems.find(i => i.term)?.term ?? existing?.overallTerm ?? 0);
-
-          grouped.set(invoiceNo, {
-            id: invoiceNo,
-            invoiceNo,
-            date: toDateString(dateKey ? row[dateKey] : undefined),
-            epfNumber: epfKey ? String(row[epfKey] ?? '').trim() : (existing?.epfNumber ?? ''),
-            customerName: nameKey ? String(row[nameKey] ?? '').trim() : (existing?.customerName ?? ''),
-            institution: instKey ? String(row[instKey] ?? '').trim() : (existing?.institution ?? ''),
-            contactNumber: mobileKey ? String(row[mobileKey] ?? '').trim() : (existing?.contactNumber ?? ''),
-            nic: nicKey ? String(row[nicKey] ?? '').trim() : (existing?.nic ?? ''),
-            items: saleItems,
-            totalCashPrice: round2(saleItems.reduce((sum, i) => sum + (i.cashPrice || 0), 0)),
-            totalRentalMonthly: round2(saleItems.reduce((sum, i) => sum + (i.rental || 0), 0)),
-            overallTerm,
-            interestRate: getTermRate(overallTerm),
-            createdBy: existing?.createdBy ?? '',
-          });
-        });
-
-        const parsedSales = Array.from(grouped.values());
-
-        if (parsedSales.length === 0) {
-          message.error('No valid invoice rows were found in the uploaded file.');
-          setImporting(false);
-          return;
-        }
-
-        const existingNos = new Set(sales.map(s => s.invoiceNo));
-        const duplicates = parsedSales.filter(s => existingNos.has(s.invoiceNo)).length;
-        const itemCount = parsedSales.reduce((sum, s) => sum + s.items.length, 0);
-
-        Modal.confirm({
-          title: 'Restore Sales History from Excel',
-          icon: <InboxOutlined className="text-emerald-600" />,
-          width: 520,
-          okText: 'Yes, Restore Data',
-          cancelText: 'No',
-          onOk: async () => {
-            setImporting(true);
-            try {
-              await bulkAddSales(parsedSales);
-              message.success(
-                `Restored ${parsedSales.length} invoices (${itemCount} items)${duplicates > 0 ? `, ${duplicates} existing invoice(s) overwritten` : ''}.`
-              );
-            } catch (error) {
-              console.error(error);
-              message.error('Failed to restore the sales history data.');
-              throw error;
-            } finally {
-              setImporting(false);
-            }
-          },
-          onCancel: () => setImporting(false),
-          content: (
-            <div className="space-y-2 pt-1">
-              <p>
-                Found <span className="font-bold">{parsedSales.length}</span> invoices containing{' '}
-                <span className="font-bold">{itemCount}</span> items in{' '}
-                <span className="font-mono">{file.name}</span>.
-              </p>
-              {duplicates > 0 && (
-                <p className="text-amber-600">
-                  {duplicates} of these invoice numbers already exist and will be overwritten with the Excel data.
-                </p>
-              )}
-              <p className="text-slate-500">
-                Existing invoices that are not present in the file will be kept as they are.
-              </p>
-            </div>
-          ),
-        });
-      } catch (error) {
-        console.error(error);
-        message.error(
-          error instanceof FileReadError
-            ? 'Failed to read the selected file.'
-            : 'Failed to parse the sales history data file.'
-        );
-        setImporting(false);
-      }
-    };
-
-    void restoreFromFile();
-    return false; // prevent default upload action
-  };
-
-  const downloadSalesTemplate = () => {
-    const templateData = [
-      {
-        'EPF': 'EPF-001',
-        'Name': 'Sampath Perera',
-        'ID': '0001',
-        'Date': '2024-01-15',
-        'NIC': '199012345678',
-        'mobile': '0711234567',
-        'Institution': 'National Hospital',
-        'Item': 'Singer Refrigerator 250L',
-        'model number': 'SIS-REF-01',
-        'cash price': 85000,
-        'total': 85000,
-        'rental': 4200,
-        'term': 12,
-      },
-      {
-        'EPF': 'EPF-001',
-        'Name': 'Sampath Perera',
-        'ID': '0001',
-        'Date': '2024-01-15',
-        'NIC': '199012345678',
-        'mobile': '0711234567',
-        'Institution': 'National Hospital',
-        'Item': 'Singer LED TV 32"',
-        'model number': 'SIS-TV-32',
-        'cash price': 45000,
-        'total': 85000,
-        'rental': 2100,
-        'term': 12,
-      },
-    ];
-    downloadExcel(templateData, 'Sales_History_Import_Template.xlsx', {
-      sheetName: 'Sales Records',
-      header: [...SALE_SHEET_HEADERS],
-    });
-    message.success('Template downloaded.');
-  };
-
   // Filter sales based on search text
-  const filteredSales = sales.filter(s =>
-    s.invoiceNo.toLowerCase().includes(searchText.toLowerCase()) ||
-    s.epfNumber.toLowerCase().includes(searchText.toLowerCase()) ||
-    s.customerName.toLowerCase().includes(searchText.toLowerCase()) ||
-    s.institution.toLowerCase().includes(searchText.toLowerCase())
-  );
-
-  const columns = [
-    {
-      title: 'Invoice No',
-      dataIndex: 'invoiceNo',
-      key: 'invoiceNo',
-      sorter: (a: Sale, b: Sale) => a.invoiceNo.localeCompare(b.invoiceNo),
-      render: (text: string) => <span className="font-mono font-bold">{text.replace(/^U\s+/, '')}</span>
-    },
-    {
-      title: 'Date',
-      dataIndex: 'date',
-      key: 'date',
-      sorter: (a: Sale, b: Sale) => a.date.localeCompare(b.date),
-    },
-    {
-      title: 'Customer Name',
-      dataIndex: 'customerName',
-      key: 'customerName',
-      sorter: (a: Sale, b: Sale) => a.customerName.localeCompare(b.customerName),
-    },
-    {
-      title: 'EPF Number',
-      dataIndex: 'epfNumber',
-      key: 'epfNumber',
-    },
-    {
-      title: 'NIC Number',
-      dataIndex: 'nic',
-      key: 'nic',
-      render: (val: string) => val || '-',
-    },
-    {
-      title: 'Total Cash Price',
-      dataIndex: 'totalCashPrice',
-      key: 'totalCashPrice',
-      render: (val: number) => formatMoney(val),
-      sorter: (a: Sale, b: Sale) => a.totalCashPrice - b.totalCashPrice,
-    },
-    {
-      title: 'Total Rental',
-      dataIndex: 'totalRentalMonthly',
-      key: 'totalRentalMonthly',
-      render: (val: number) => formatMoney(val),
-      sorter: (a: Sale, b: Sale) => a.totalRentalMonthly - b.totalRentalMonthly,
-    },
-    {
-      title: 'Term',
-      dataIndex: 'overallTerm',
-      key: 'overallTerm',
-      render: (val: number) => `${val} Months`,
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_: unknown, record: Sale) => (
-        <Space size="middle">
-          <Button
-            type="text"
-            icon={<EyeOutlined className="text-singer" />}
-            onClick={() => handleViewDetails(record)}
-          />
-          <Button
-            type="text"
-            icon={<EditOutlined className="text-amber-500" />}
-            onClick={() => handleEdit(record)}
-          />
-          <Button
-            type="text"
-            icon={<PrinterOutlined className="text-emerald-500" />}
-            onClick={() => handlePrint(record)}
-          />
-          <Popconfirm
-            title="Delete Record"
-            description="Are you sure you want to delete this sale record?"
-            onConfirm={() => handleDelete(record.invoiceNo)} // invoiceNo is our Firestore doc ID in useSales
-            okText="Yes"
-            cancelText="No"
-          >
-            <Button type="text" danger icon={<DeleteOutlined />} />
-          </Popconfirm>
-        </Space>
+  const filteredSales = useMemo(
+    () =>
+      sales.filter(s =>
+        s.invoiceNo.toLowerCase().includes(searchText.toLowerCase()) ||
+        s.epfNumber.toLowerCase().includes(searchText.toLowerCase()) ||
+        s.customerName.toLowerCase().includes(searchText.toLowerCase()) ||
+        s.institution.toLowerCase().includes(searchText.toLowerCase())
       ),
-    },
-  ];
+    [sales, searchText]
+  );
 
   return (
     <div className="space-y-6">
       {/* Print component - Hidden on screen */}
-      {printSaleData && <PrintLayout saleData={printSaleData.saleData} />}
+      {printSaleData && <PrintLayout saleData={printSaleData} />}
 
       <Card
         bordered={false}
@@ -556,13 +167,13 @@ export const SalesHistoryPage: React.FC = () => {
           </Space>
         }
       >
-        <Table
-          dataSource={filteredSales}
-          columns={columns}
-          rowKey="invoiceNo"
+        <SalesHistoryTable
+          sales={filteredSales}
           loading={loading}
-          pagination={{ pageSize: 10 }}
-          className="border border-slate-100 rounded-lg overflow-hidden"
+          onView={handleViewDetails}
+          onEdit={handleEdit}
+          onPrint={printSale}
+          onDelete={handleDelete}
         />
       </Card>
 
@@ -575,62 +186,7 @@ export const SalesHistoryPage: React.FC = () => {
       />
 
       {/* Restore Sales History from Excel */}
-      <Card
-        bordered={false}
-        className="shadow-sm rounded-xl no-print"
-        title={
-          <Space>
-            <InboxOutlined className="text-singer" />
-            <span className="font-semibold text-lg">Restore Sales History from Excel</span>
-          </Space>
-        }
-        extra={
-          <Button
-            type="link"
-            icon={<DownloadOutlined />}
-            onClick={downloadSalesTemplate}
-            className="p-0 text-singer"
-            disabled={importing}
-          >
-            Download Template
-          </Button>
-        }
-      >
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div className="flex-1">
-            <Text className="block text-slate-600">
-              Upload an Excel sheet containing your invoice rows to get your sales history data back. Rows sharing the
-              same <Text className="font-mono font-semibold">ID</Text> (invoice number) are grouped into a single
-              invoice, exactly like the exported sales report format.
-            </Text>
-            <Text type="secondary" className="block text-xs mt-2">
-              Required columns: <Text className="font-mono">ID</Text>, <Text className="font-mono">EPF</Text>,{' '}
-              <Text className="font-mono">Name</Text>, <Text className="font-mono">Item</Text>. Optional:{' '}
-              <Text className="font-mono">Date</Text>, <Text className="font-mono">NIC</Text>,{' '}
-              <Text className="font-mono">mobile</Text>, <Text className="font-mono">Institution</Text>,{' '}
-              <Text className="font-mono">model number</Text>, <Text className="font-mono">cash price</Text>,{' '}
-              <Text className="font-mono">rental</Text>, <Text className="font-mono">term</Text>.
-            </Text>
-          </div>
-          <Upload
-            className="w-full lg:w-auto [&_.ant-upload]:!block [&_.ant-upload]:!w-full"
-            beforeUpload={handleSalesUpload}
-            accept=".xlsx,.xls,.csv"
-            showUploadList={false}
-            disabled={importing || clearing}
-          >
-            <Button
-              type="primary"
-              icon={<UploadOutlined />}
-              loading={importing}
-              disabled={clearing}
-              className="bg-singer hover:bg-singer-dark w-full lg:w-auto"
-            >
-              Upload Sales History Excel
-            </Button>
-          </Upload>
-        </div>
-      </Card>
+      <SalesRestoreCard clearing={clearing} onImportingChange={setImporting} />
 
       {/* Edit Sale Modal */}
       {editModalVisible && editSale && (
@@ -646,121 +202,12 @@ export const SalesHistoryPage: React.FC = () => {
       )}
 
       {/* Sale Details Modal */}
-      <Modal
-        title={
-          <div className="flex justify-between items-center pr-6">
-            <span className="font-bold text-lg">Invoice Details</span>
-            <span className="font-mono text-red-500 font-bold">{(selectedSale?.invoiceNo || '').replace(/^U\s+/, '')}</span>
-          </div>
-        }
+      <SaleDetailsModal
+        sale={selectedSale}
         open={detailsModalVisible}
-        onCancel={() => setDetailsModalVisible(false)}
-        footer={[
-          <Button key="close" onClick={() => setDetailsModalVisible(false)}>
-            Close
-          </Button>,
-          <Button
-            key="print"
-            type="primary"
-            icon={<PrinterOutlined />}
-            onClick={() => {
-              if (selectedSale) {
-                handlePrint(selectedSale);
-                setDetailsModalVisible(false);
-              }
-            }}
-            className="bg-singer hover:bg-singer-dark"
-          >
-            Print Invoice
-          </Button>
-        ]}
-        width={700}
-      >
-        {selectedSale && (
-          <div className="space-y-6 mt-4">
-            {/* Customer Details Block */}
-            <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-lg text-sm">
-              <div>
-                <Text type="secondary" className="block text-xs">Customer Name</Text>
-                <Text className="font-semibold text-slate-800">{selectedSale.customerName}</Text>
-              </div>
-              <div>
-                <Text type="secondary" className="block text-xs">Date of Transaction</Text>
-                <Text className="font-semibold text-slate-800">{selectedSale.date}</Text>
-              </div>
-              <div>
-                <Text type="secondary" className="block text-xs">EPF Number</Text>
-                <Text className="font-semibold text-slate-800">{selectedSale.epfNumber}</Text>
-              </div>
-              <div>
-                <Text type="secondary" className="block text-xs">Contact Number</Text>
-                <Text className="font-semibold text-slate-800">{selectedSale.contactNumber}</Text>
-              </div>
-              <div>
-                <Text type="secondary" className="block text-xs">NIC Number</Text>
-                <Text className="font-semibold text-slate-800">{selectedSale.nic || '-'}</Text>
-              </div>
-              <div className="col-span-2">
-                <Text type="secondary" className="block text-xs">Institution</Text>
-                <Text className="font-semibold text-slate-800">{selectedSale.institution}</Text>
-              </div>
-            </div>
-
-            {/* Sale Items Table */}
-            <div>
-              <Text className="font-bold block mb-2 text-slate-700">Purchased Items</Text>
-              <table className="w-full border-collapse border border-slate-200 text-sm">
-                <thead>
-                  <tr className="bg-slate-100 text-slate-600 font-semibold">
-                    <th className="border border-slate-200 p-2 text-left">Model</th>
-                    <th className="border border-slate-200 p-2 text-left">Item Name</th>
-                    <th className="border border-slate-200 p-2 text-right">Cash Price</th>
-                    <th className="border border-slate-200 p-2 text-right">Rental</th>
-                    <th className="border border-slate-200 p-2 text-center w-16">Term</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {selectedSale.items.map((it, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50/50">
-                      <td className="border border-slate-200 p-2 font-mono font-medium">{it.modelNumber}</td>
-                      <td className="border border-slate-200 p-2">{it.itemName}</td>
-                      <td className="border border-slate-200 p-2 text-right">
-                        {formatMoney(it.cashPrice)}
-                      </td>
-                      <td className="border border-slate-200 p-2 text-right">
-                        {formatMoney(it.rental)}
-                      </td>
-                      <td className="border border-slate-200 p-2 text-center">{it.term} M</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Aggregate Values Block */}
-            <div className="grid grid-cols-3 gap-4 border-t border-slate-100 pt-4 text-center">
-              <div>
-                <Text type="secondary" className="block text-xs">Total Cash Price</Text>
-                <Text className="font-bold text-base text-slate-800">
-                  {formatMoney(selectedSale.totalCashPrice)}
-                </Text>
-              </div>
-              <div>
-                <Text type="secondary" className="block text-xs">Total Monthly Rental</Text>
-                <Text className="font-bold text-base text-singer">
-                  {formatMoney(selectedSale.totalRentalMonthly)}
-                </Text>
-              </div>
-              <div>
-                <Text type="secondary" className="block text-xs">Term</Text>
-                <Text className="font-bold text-base text-slate-800">
-                  {selectedSale.overallTerm} M
-                </Text>
-              </div>
-            </div>
-          </div>
-        )}
-      </Modal>
+        onClose={() => setDetailsModalVisible(false)}
+        onPrint={printSale}
+      />
     </div>
   );
 };
