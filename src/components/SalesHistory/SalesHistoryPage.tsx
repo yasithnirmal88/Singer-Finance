@@ -1,15 +1,19 @@
 import React, { useMemo, useState } from 'react';
-import { Button, Card, Space, Modal, Input, message } from 'antd';
+import { Button, ConfigProvider, Modal, Input, message } from 'antd';
 import {
   SearchOutlined,
   FileExcelOutlined,
   DeleteOutlined,
   ExclamationCircleFilled,
+  FileTextOutlined,
+  DatabaseOutlined,
+  CalendarOutlined,
 } from '@ant-design/icons';
 import { useSales } from '../../hooks/useSales';
 import { usePrintSale } from '../../hooks/usePrintSale';
 import type { Sale } from '../../types';
 import { downloadExcel } from '../../utils/excel';
+import { formatCount, formatMoney } from '../../utils/format';
 import { buildSalesExportRows } from '../../utils/salesSheet';
 import PrintLayout from '../Print/PrintLayout';
 import EditSaleModal from './EditSaleModal';
@@ -17,6 +21,16 @@ import { SalesSummary } from './SalesSummary';
 import SalesHistoryTable from './SalesHistoryTable';
 import SaleDetailsModal from './SaleDetailsModal';
 import SalesRestoreCard from './SalesRestoreCard';
+import './SalesHistory.css';
+
+/** Accent used by this page's buttons, focus rings and highlights. Use '#d6073b' for the Singer red. */
+const ACCENT = '#2563eb';
+
+/** Same rule as SalesSummary, so the two panels can never disagree. */
+const cashValueOf = (sale: Sale) => {
+  if (!sale.items || sale.items.length === 0) return Number(sale.totalCashPrice) || 0;
+  return sale.items.reduce((sum, item) => sum + (Number(item.cashPrice) || 0), 0);
+};
 
 export const SalesHistoryPage: React.FC = () => {
   const { sales, loading, deleteSale, clearAllSales } = useSales();
@@ -126,67 +140,122 @@ export const SalesHistoryPage: React.FC = () => {
     [sales, searchText]
   );
 
+  const totalCash = filteredSales.reduce((sum, sale) => sum + cashValueOf(sale), 0);
+  const totalRental = filteredSales.reduce((sum, sale) => sum + (Number(sale.totalRentalMonthly) || 0), 0);
+  const isFiltered = searchText.trim().length > 0;
+
+  const stats = [
+    {
+      key: 'records',
+      tone: 'blue',
+      icon: <FileTextOutlined />,
+      label: 'Total Records',
+      value: formatCount(filteredSales.length),
+      note: isFiltered ? `of ${formatCount(sales.length)} in total` : undefined,
+    },
+    { key: 'cash', tone: 'green', icon: <DatabaseOutlined />, label: 'Total Cash Sales', value: formatMoney(totalCash) },
+    { key: 'rental', tone: 'purple', icon: <CalendarOutlined />, label: 'Total Monthly Rental', value: formatMoney(totalRental) },
+  ];
+
   return (
-    <div className="space-y-6">
+    <ConfigProvider
+      theme={{
+        token: { colorPrimary: ACCENT, borderRadius: 8 },
+        components: {
+          Table: {
+            headerBg: '#f0f5fc',
+            headerColor: '#334155',
+            headerSplitColor: 'transparent',
+            headerBorderRadius: 10,
+            rowHoverBg: '#f5f8fe',
+            borderColor: '#eef0f5',
+            cellPaddingBlock: 14,
+          },
+        },
+      }}
+    >
       {/* Print component - Hidden on screen */}
       {printSaleData && <PrintLayout saleData={printSaleData} />}
 
-      <Card
-        bordered={false}
-        className="shadow-sm rounded-xl no-print"
-        title="Sales History Logs"
-        extra={
-          <Space size="middle">
+      <div className="sh-root no-print">
+        <header className="sh-head">
+          <span className="sh-head-icon" aria-hidden="true">
+            <FileTextOutlined />
+          </span>
+          <div className="sh-head-titles">
+            <h1 className="sh-title">Sales History Logs</h1>
+            <p className="sh-sub">View and manage all sales transactions and invoice records</p>
+          </div>
+          <div className="sh-tools">
             <Input
+              size="large"
               placeholder="Search records..."
-              prefix={<SearchOutlined className="text-slate-400" />}
+              prefix={<SearchOutlined className="sh-muted" />}
               value={searchText}
               onChange={e => setSearchText(e.target.value)}
-              style={{ width: 250 }}
+              className="sh-search"
               allowClear
             />
             <Button
+              size="large"
               type="primary"
               icon={<FileExcelOutlined />}
               onClick={handleExportExcel}
               loading={clearing}
-              className="bg-emerald-600 hover:bg-emerald-500 border-none"
             >
               Export Excel
             </Button>
             <Button
+              size="large"
               danger
               icon={<DeleteOutlined />}
               onClick={handleClearAllHistory}
               loading={clearing}
               disabled={sales.length === 0 || importing}
-              className="hover:border-red-600 hover:text-red-600"
+              className="sh-danger"
             >
               Delete All History
             </Button>
-          </Space>
-        }
-      >
-        <SalesHistoryTable
+          </div>
+        </header>
+
+        <div className="sh-stats">
+          {stats.map(stat => (
+            <article key={stat.key} className="sh-stat">
+              <span className={`sh-stat-icon sh-tone-${stat.tone}`} aria-hidden="true">
+                {stat.icon}
+              </span>
+              <div className="sh-stat-text">
+                <span className="sh-stat-label">{stat.label}</span>
+                <span className="sh-stat-value">{stat.value}</span>
+                {stat.note ? <span className="sh-stat-note">{stat.note}</span> : null}
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <section className="sh-table-card">
+          <SalesHistoryTable
+            sales={filteredSales}
+            loading={loading}
+            onView={handleViewDetails}
+            onEdit={handleEdit}
+            onPrint={printSale}
+            onDelete={handleDelete}
+          />
+        </section>
+
+        {/* Sales history summary. Reflects the current search when one is active. */}
+        <SalesSummary
           sales={filteredSales}
+          totalCount={sales.length}
           loading={loading}
-          onView={handleViewDetails}
-          onEdit={handleEdit}
-          onPrint={printSale}
-          onDelete={handleDelete}
+          searchText={searchText}
         />
-      </Card>
 
-      {/* Sales history summary. Reflects the current search when one is active. */}
-      <SalesSummary
-        sales={filteredSales}
-        totalCount={sales.length}
-        loading={loading}
-        searchText={searchText}
-      />
-
-      {/* Restore Sales History from Excel */}
-      <SalesRestoreCard clearing={clearing} onImportingChange={setImporting} />
+        {/* Restore Sales History from Excel */}
+        <SalesRestoreCard clearing={clearing} onImportingChange={setImporting} />
+      </div>
 
       {/* Edit Sale Modal */}
       {editModalVisible && editSale && (
@@ -208,7 +277,7 @@ export const SalesHistoryPage: React.FC = () => {
         onClose={() => setDetailsModalVisible(false)}
         onPrint={printSale}
       />
-    </div>
+    </ConfigProvider>
   );
 };
 export default SalesHistoryPage;
