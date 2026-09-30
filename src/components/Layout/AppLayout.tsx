@@ -96,6 +96,7 @@ export const AppLayout: React.FC = () => {
         trigger={null}
         collapsible
         collapsed={collapsed}
+        collapsedWidth={0}
         theme="dark"
         className="shadow-xl bg-slate-900 border-r border-slate-800 no-print"
         width={240}

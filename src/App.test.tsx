@@ -41,6 +41,6 @@ describe('AppRoutes', () => {
 
   it('falls back to the dashboard for an unknown path', async () => {
     renderAt('/definitely-not-a-route');
-    expect(await screen.findByText('New Sale Form')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'New Sale' })).toBeInTheDocument();
   });
 });
