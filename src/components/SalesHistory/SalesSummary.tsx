@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Progress, Skeleton } from 'antd';
+import { Skeleton } from 'antd';
 import {
   BarChartOutlined,
+  ClockCircleOutlined,
   DollarOutlined,
   CalendarOutlined,
   FileTextOutlined,
@@ -11,6 +12,7 @@ import {
 import { TERM_OPTIONS } from '../../constants';
 import { formatCount, formatMoney } from '../../utils/format';
 import type { Sale } from '../../types';
+import './SalesSummary.css';
 
 export interface SalesSummaryProps {
   /** The rows the figures describe. The parent passes the filtered rows while a search is active. */
@@ -117,43 +119,28 @@ interface StatConfig {
   value: number;
   format: (value: number) => string;
   icon: React.ReactNode;
-  /** Tinted background + foreground for the icon badge. */
-  badge: string;
   helper: string;
   /** Optional extra line shown under the value. */
   footer?: React.ReactNode;
 }
 
 const StatCard: React.FC<{ stat: StatConfig; animate: boolean }> = ({ stat, animate }) => (
-  <div className="flex h-full flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow duration-200 hover:shadow-md">
-    <span
-      className={`inline-flex h-10 w-10 items-center justify-center rounded-xl text-lg ${stat.badge}`}
-      aria-hidden="true"
-    >
+  <article className="ss-card">
+    <span className="ss-badge" aria-hidden="true">
       {stat.icon}
     </span>
-
-    <div className="mt-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">{stat.label}</div>
-
-    <CountUpValue
-      value={stat.value}
-      format={stat.format}
-      animate={animate}
-      className="mt-1 text-3xl font-bold leading-tight text-slate-900 [font-variant-numeric:tabular-nums] break-words"
-    />
-
-    {stat.footer ? <div className="mt-1 text-xs text-slate-500">{stat.footer}</div> : null}
-
-    <div className="mt-auto pt-2 text-[11px] text-slate-400">{stat.helper}</div>
-  </div>
+    <span className="ss-label">{stat.label}</span>
+    <CountUpValue value={stat.value} format={stat.format} animate={animate} className="ss-value" />
+    {stat.footer ? <span className="ss-sub">{stat.footer}</span> : null}
+    <span className={stat.footer ? 'ss-hint' : 'ss-sub'}>{stat.helper}</span>
+  </article>
 );
 
 const SkeletonCards: React.FC = () => (
   <>
     {[0, 1, 2, 3].map(i => (
-      <div key={i} className="rounded-xl border border-slate-200 bg-white p-4">
-        <Skeleton active paragraph={{ rows: 0 }} avatar={{ shape: 'square', size: 40 }} />
-        <Skeleton active paragraph={{ rows: 2 }} title={false} className="mt-3" />
+      <div key={i} className="ss-card">
+        <Skeleton active paragraph={{ rows: 2 }} avatar={{ shape: 'square', size: 52 }} title={false} />
       </div>
     ))}
   </>
@@ -185,45 +172,39 @@ export const SalesSummary: React.FC<SalesSummaryProps> = ({
   const stats: StatConfig[] = [
     {
       key: 'cash',
-      label: 'Total Sales Value',
+      label: 'Total sales value',
       value: cashPrice,
       format: formatMoney,
       icon: <DollarOutlined />,
-      // Primary accent: the Singer brand red.
-      badge: 'bg-red-50 text-singer',
       helper: 'Full cash value of every item billed',
       footer: (
         <>
-          Avg. invoice value:{' '}
-          <span className="font-semibold text-slate-700">{formatMoney(averageInvoice)}</span>
+          Avg. invoice value: <strong>{formatMoney(averageInvoice)}</strong>
         </>
       ),
     },
     {
       key: 'rental',
-      label: 'Total Monthly Rental',
+      label: 'Total monthly rental',
       value: rental,
       format: formatMoney,
       icon: <CalendarOutlined />,
-      badge: 'bg-emerald-50 text-emerald-600',
       helper: 'Combined across all invoices',
     },
     {
       key: 'invoices',
-      label: 'Total Invoices',
+      label: 'Total invoices',
       value: invoiceCount,
       format: formatCount,
       icon: <FileTextOutlined />,
-      badge: 'bg-blue-50 text-blue-600',
       helper: `${formatCount(itemCount)} item${itemCount === 1 ? '' : 's'} sold`,
     },
     {
       key: 'customers',
-      label: 'Total Customers',
+      label: 'Total customers',
       value: customerCount,
       format: formatCount,
       icon: <TeamOutlined />,
-      badge: 'bg-amber-50 text-amber-600',
       helper: 'Unique EPF numbers',
     },
   ];
@@ -234,27 +215,24 @@ export const SalesSummary: React.FC<SalesSummaryProps> = ({
     : `All ${formatCount(invoiceCount)} invoice${invoiceCount === 1 ? '' : 's'}`;
 
   return (
-    <section
-      className="no-print box-border rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
-      aria-label="Sales summary"
-    >
-      <header className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <span className="inline-flex items-center gap-2">
-          <BarChartOutlined className="text-singer" aria-hidden="true" />
-          <h2 className="m-0 text-base font-semibold text-slate-900">Sales summary</h2>
+    <section className="ss-root no-print" aria-label="Sales summary">
+      <header className="ss-header">
+        <span className="ss-header-icon" aria-hidden="true">
+          <BarChartOutlined />
         </span>
-        <span className="text-xs text-slate-400">{caption}</span>
+        <h2 className="ss-title">Sales summary</h2>
+        <span className="ss-chip">{caption}</span>
       </header>
 
       {loading ? (
-        <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="ss-grid">
           <SkeletonCards />
         </div>
       ) : isEmpty ? (
-        <div className="mt-5 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 py-12 text-center">
-          <InboxOutlined className="text-2xl text-slate-300" aria-hidden="true" />
-          <div className="text-sm font-semibold text-slate-600">No invoices yet</div>
-          <div className="text-xs text-slate-400">
+        <div className="ss-empty">
+          <InboxOutlined className="ss-empty-icon" aria-hidden="true" />
+          <div className="ss-empty-title">No invoices yet</div>
+          <div className="ss-empty-text">
             {isFiltered
               ? 'No invoices match the current search.'
               : 'Totals will appear here once the first invoice is created.'}
@@ -262,38 +240,35 @@ export const SalesSummary: React.FC<SalesSummaryProps> = ({
         </div>
       ) : (
         <>
-          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="ss-grid">
             {stats.map(stat => (
               <StatCard key={stat.key} stat={stat} animate />
             ))}
           </div>
 
-          {maxTermCount > 0 ? (
-            <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                Term breakdown
-              </div>
-              <div className="mt-3 grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2 xl:grid-cols-4">
-                {termCounts.map(entry => (
-                  <div key={entry.term}>
-                    <div className="flex items-baseline justify-between gap-2 text-xs">
-                      <span className="font-medium text-slate-600">{entry.label}</span>
-                      <span className="font-semibold text-slate-800 [font-variant-numeric:tabular-nums]">
-                        {formatCount(entry.count)}
-                      </span>
-                    </div>
-                    <Progress
-                      percent={maxTermCount > 0 ? (entry.count / maxTermCount) * 100 : 0}
-                      showInfo={false}
-                      size="small"
-                      strokeColor={entry.count > 0 ? '#d6073b' : '#cbd5e1'}
-                      trailColor="#e2e8f0"
-                    />
-                  </div>
-                ))}
+          <div className="ss-panel">
+            <div className="ss-panel-head">
+              <span className="ss-panel-icon" aria-hidden="true">
+                <ClockCircleOutlined />
+              </span>
+              <div>
+                <h3 className="ss-panel-title">Term breakdown</h3>
+                <p className="ss-panel-sub">Invoices by rental term</p>
               </div>
             </div>
-          ) : null}
+            {termCounts.map(entry => (
+              <div key={entry.term} className="ss-term-row">
+                <span className="ss-term-name">{entry.label}</span>
+                <span className="ss-term-count">{formatCount(entry.count)}</span>
+                <div className="ss-track">
+                  <div
+                    className="ss-fill"
+                    style={{ width: `${maxTermCount > 0 ? (entry.count / maxTermCount) * 100 : 0}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
         </>
       )}
     </section>
@@ -301,4 +276,3 @@ export const SalesSummary: React.FC<SalesSummaryProps> = ({
 };
 
 export default SalesSummary;
-
