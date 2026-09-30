@@ -127,7 +127,7 @@ export const AppLayout: React.FC = () => {
             <img
               src={COMPANY_LOGO_SRC}
               alt="Singer Finance"
-              style={{ height: '44px', width: 'auto', objectFit: 'contain', display: 'block' }}
+              style={{ height: '56px', width: 'auto', objectFit: 'contain', display: 'block' }}
             />
           </div>
 
