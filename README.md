@@ -1,73 +1,125 @@
-# React + TypeScript + Vite
+# Singer Finance
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A hire-purchase (HP) sales tracker for a Singer dealer in Sri Lanka. Operators
+record credit sales, keep a customer and price list, and restore or back up the
+sales history as Excel files.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- React 19 + TypeScript
+- Vite 5 (with Vitest 3 for the test suite)
+- Ant Design 6, Tailwind CSS 4
+- Firebase Auth + Firestore (the source of truth)
+- xlsx for Excel export/import
 
-## React Compiler
+## Setup
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. Install dependencies:
 
-## Expanding the ESLint configuration
+   ```sh
+   npm install
+   ```
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+2. Create a Firebase project and enable Email/Password and Google sign-in,
+   then create a Firestore database.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+3. Copy `.env.example` to `.env` and fill in the Firebase web app keys:
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+   ```sh
+   cp .env.example .env
+   ```
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+   `.env` is git-ignored; never commit real Firebase keys.
+
+4. Deploy the Firestore security rules before using the app (see
+   [Firestore rules](#firestore-rules)).
+
+5. Start the dev server:
+
+   ```sh
+   npm run dev
+   ```
+
+## Scripts
+
+| Command            | What it does                                    |
+| ------------------ | ----------------------------------------------- |
+| `npm run dev`      | Vite dev server with HMR                        |
+| `npm run build`    | Typecheck (`tsc -b`) then production build      |
+| `npm run preview`  | Serve the production build locally              |
+| `npm run lint`     | ESLint over the whole tree                      |
+| `npm test`         | Vitest suite (runs once)                        |
+| `npm run test:watch` | Vitest in watch mode                          |
+
+## Data layout
+
+Firestore stores everything under the signed-in user, keyed by its natural
+identifier so a document id always matches the entity it holds:
+
+```
+users/{uid}/sales/{invoiceNo}        e.g. 0001
+users/{uid}/customers/{epfNumber}    e.g. EPF-001
+users/{uid}/items/{modelNumber}      e.g. SIS-REF-01
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Reads go through a single `DataProvider` (one `onSnapshot` per collection for
+the whole app) into React contexts, so mounting several screens never opens
+duplicate subscriptions. A localStorage cache per collection (`sf_sales`,
+`sf_customers`, `sf_items`) is written on a debounce; it only speeds up cold
+loads and is never treated as the truth.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Firestore rules
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Deploy the rules file so only each user can reach their own data:
+
+```sh
+firebase deploy --only firestore:rules
+```
+
+`firestore.rules` scopes every read and write to `users/{uid}` where
+`request.auth.uid == userId`. See the file itself for the exact match.
+
+## Deployment
+
+This is a single-page app in which every screen is a real URL, so the web host
+must serve `index.html` for any unknown path (SPA fallback). Firebase Hosting
+does this with a `rewrites` rule:
+
+```json
+{
+  "hosting": {
+    "rewrites": [{ "source": "**", "destination": "/index.html" }]
+  }
+}
+```
+
+Without the fallback, a shared deep link like `/history` returns a 404 on
+reload or paste, even though the route exists in the client.
+
+## Tests
+
+The suite replaces the Firebase SDK with in-memory stubs (`src/test/stubs`) so
+it runs without a network or credentials. The Firestore double stages batch
+writes, so the rollback behavior on a failed commit is exercised for real.
+
+```sh
+npm test
+```
+
+Covered by the same gates as the app: test files live under `src`, so
+`tsc -b` typechecks them and `eslint .` lints them.
+
+## Project structure
+
+```
+src/
+  config/company.ts        company name, contact details on printed invoices
+  contexts/                AuthProvider, DataProvider, data contexts
+  hooks/                   context selectors (useSales, useCustomers, useItems)
+  utils/                   formatting, pricing, Excel and sales-sheet logic
+  components/
+    SalesHistory/          history table, details modal, restore, print
+    NewSale/, Customers/, Items/, DataManagement/, Print/, Layout/
+  pages/                   routed shells (Dashboard, Login)
+  test/                    Vitest setup and Firebase stubs
 ```

@@ -25,3 +25,10 @@ dist-ssr
 
 # Environment variables (contains Firebase keys — use .env.example as template)
 .env
+
+# Firebase CLI
+.firebase/
+firebase-debug.log
+
+# Test coverage output
+coverage/
